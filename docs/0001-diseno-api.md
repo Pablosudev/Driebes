@@ -13,20 +13,20 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 | Campo       | Tipo     | Notas                              |
 |-------------|----------|------------------------------------|
 | id          | number   | Autoincremental                    |
-| titulo      | string   | Requerido                          |
-| descripcion | string   | Requerido                          |
-| imagen      | string   | URL/ruta del archivo, opcional     |
-| fechaSubida | datetime | Autogenerada al crear              |
+| title       | string   | Requerido                          |
+| description | string   | Requerido                          |
+| image       | string   | URL/ruta del archivo, opcional     |
+| uploadDate  | datetime | Autogenerada al crear              |
 
 ### Endpoints
 
 | Método | Ruta            | Descripción                                          |
 |--------|-----------------|------------------------------------------------------|
-| GET    | /noticias       | Listar todas las noticias                            |
-| GET    | /noticias/:id   | Obtener una noticia por ID                           |
-| POST   | /noticias       | Crear una noticia (multipart/form-data para imagen)  |
-| PUT    | /noticias/:id   | Actualizar una noticia                               |
-| DELETE | /noticias/:id   | Eliminar una noticia                                 |
+| GET    | /news           | Listar todas las noticias                            |
+| GET    | /news/:id       | Obtener una noticia por ID                           |
+| POST   | /news           | Crear una noticia (multipart/form-data para imagen)  |
+| PUT    | /news/:id       | Actualizar una noticia                               |
+| DELETE | /news/:id       | Eliminar una noticia                                 |
 
 ---
 
@@ -37,23 +37,23 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 | Campo         | Tipo     | Notas                                       |
 |---------------|----------|---------------------------------------------|
 | id            | number   | Autoincremental                             |
-| titulo        | string   | Requerido                                   |
-| descripcion   | string   | Requerido                                   |
-| imagen        | string   | URL/ruta del archivo, opcional              |
-| fechaCreacion | datetime | Autogenerada al crear                       |
-| fechaEvento   | datetime | Requerido                                   |
-| categoria     | enum     | `deportivo`, `festivo`, `religioso`, `otro` |
+| title         | string   | Requerido                                   |
+| description   | string   | Requerido                                   |
+| image         | string   | URL/ruta del archivo, opcional              |
+| creationDate  | datetime | Autogenerada al crear                       |
+| eventDate     | datetime | Requerido                                   |
+| category      | enum     | `deportivo`, `festivo`, `religioso`, `otro` |
 
 ### Endpoints
 
 | Método | Ruta                         | Descripción                                       |
 |--------|------------------------------|---------------------------------------------------|
-| GET    | /eventos                     | Listar todos los eventos                          |
-| GET    | /eventos/:id                 | Obtener un evento por ID                          |
-| GET    | /eventos?categoria=deportivo | Filtrar eventos por categoría                     |
-| POST   | /eventos                     | Crear un evento (multipart/form-data para imagen) |
-| PUT    | /eventos/:id                 | Actualizar un evento                              |
-| DELETE | /eventos/:id                 | Eliminar un evento                                |
+| GET    | /events                      | Listar todos los eventos                          |
+| GET    | /events/:id                  | Obtener un evento por ID                          |
+| GET    | /events?category=deportivo   | Filtrar eventos por categoría                     |
+| POST   | /events                      | Crear un evento (multipart/form-data para imagen) |
+| PUT    | /events/:id                  | Actualizar un evento                              |
+| DELETE | /events/:id                  | Eliminar un evento                                |
 
 ---
 
@@ -64,13 +64,13 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 | Campo         | Tipo     | Notas                                     |
 |---------------|----------|-------------------------------------------|
 | id            | number   | Autoincremental                           |
-| nombre        | string   | Nombre del solicitante, requerido         |
-| telefono      | string   | Contacto del solicitante, requerido       |
-| fechaInicio   | datetime | Requerido                                 |
-| fechaFin      | datetime | Requerido                                 |
-| estado        | enum     | `libre`, `pendiente`, `reservado`         |
-| notas         | string   | Observaciones, opcional                   |
-| fechaCreacion | datetime | Autogenerada al crear                     |
+| name          | string   | Nombre del solicitante, requerido         |
+| phone         | string   | Contacto del solicitante, requerido       |
+| startDate     | datetime | Requerido                                 |
+| endDate       | datetime | Requerido                                 |
+| state         | enum     | `libre`, `pendiente`, `reservado`         |
+| notes         | string   | Observaciones, opcional                   |
+| createDate    | datetime | Autogenerada al crear                     |
 
 ### Lógica de estados
 
@@ -82,13 +82,13 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 | Método | Ruta                       | Descripción                                        |
 |--------|----------------------------|----------------------------------------------------|
-| GET    | /reservas                  | Listar todas las reservas                          |
-| GET    | /reservas/:id              | Obtener una reserva por ID                         |
-| GET    | /reservas?estado=pendiente | Filtrar reservas por estado                        |
-| GET    | /reservas?fecha=2026-07-01 | Consultar disponibilidad en una fecha concreta     |
-| POST   | /reservas                  | Crear una solicitud de reserva (estado: pendiente) |
-| PATCH  | /reservas/:id/estado       | Cambiar estado de una reserva                      |
-| DELETE | /reservas/:id              | Eliminar una reserva                               |
+| GET    | /bookings                  | Listar todas las reservas                          |
+| GET    | /bookings/:id              | Obtener una reserva por ID                         |
+| GET    | /bookings?state=pending    | Filtrar reservas por estado                        |
+| GET    | /bookings?date=2026-07-01  | Consultar disponibilidad en una fecha concreta     |
+| POST   | /bookings                  | Crear una solicitud de reserva (estado: pendiente) |
+| PATCH  | /bookings/:id/state        | Cambiar estado de una reserva                      |
+| DELETE | /bookings/:id              | Eliminar una reserva                               |
 
 ---
 

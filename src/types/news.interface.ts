@@ -1,13 +1,13 @@
 // Modelo de dominio de una Noticia.
 // Basado en el contrato definido en docs/openapi.yaml.
-export interface Noticia {
+export interface NewInterface {
   id: number;
-  titulo: string;
-  descripcion: string;
-  imagen: string | null;
-  fechaSubida: string;
+  title: string;
+  description: string;
+  image: string | null;
+  uploadDate: string;
 }
 
 // Datos de entrada para crear o actualizar una noticia.
 // Los campos autogenerados (id, fechaSubida) quedan fuera.
-export type NoticiaInput = Omit<Noticia, 'id' | 'fechaSubida'>;
+export type NewInputInterface = Omit<NewInterface, 'id' | 'uploadDate'>;

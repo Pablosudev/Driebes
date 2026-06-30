@@ -1,7 +1,6 @@
 import express, { type Express } from 'express';
-import { InMemoryNoticiaRepository } from './noticias/infrastructure/persistence/noticia.repository';
-import { CrearNoticiaUseCase } from './noticias/domain/crear-noticia.use-case';
-import { crearNoticiasRouter } from './noticias/infrastructure/transport/noticias.router';
+import { buildNewsRouter } from './news/news.module';
+import { buildEventsRouter } from './events/events.module';
 
 export function createApp(): Express {
   const app = express();
@@ -12,15 +11,8 @@ export function createApp(): Express {
     res.json({ status: 'ok' });
   });
 
-  // ─────────────────────────────────────────
-  // NOTICIAS
-  // ─────────────────────────────────────────
-  // Composición de las 3 capas (composition root): se elige la implementación
-  // de persistencia, se inyecta en el use case y este en el router de transporte.
-  const noticiaRepository = new InMemoryNoticiaRepository();
-  const crearNoticia = new CrearNoticiaUseCase(noticiaRepository);
-
-  app.use('/noticias', crearNoticiasRouter(crearNoticia));
+  app.use('/news', buildNewsRouter());
+  app.use('/events', buildEventsRouter());
 
   return app;
 }
