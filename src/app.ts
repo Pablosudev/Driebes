@@ -1,6 +1,7 @@
 import express, { type Express } from 'express';
-import { buildNewsRouter } from './news/news.module';
-import { buildEventsRouter } from './events/events.module';
+import { buildNewsRouter } from './modules/news/news.module';
+import { buildEventsRouter } from './modules/events/events.module';
+import { buildBookingsRouter } from './modules/bookings/bookings.module';
 
 export function createApp(): Express {
   const app = express();
@@ -13,6 +14,7 @@ export function createApp(): Express {
 
   app.use('/news', buildNewsRouter());
   app.use('/events', buildEventsRouter());
+  app.use('/bookings', buildBookingsRouter());
 
   return app;
 }

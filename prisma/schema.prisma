@@ -1,0 +1,75 @@
+// Esquema de Prisma para la API del Ayuntamiento.
+// Prisma controla el esquema de la base de datos y sus migraciones.
+// Modelo basado en docs/0001-diseno-api.md.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────
+// BOOKINGS (Reservas del local municipal)
+// ─────────────────────────────────────────
+
+// 'free' (libre) es un estado calculado que en la práctica no se persiste,
+// pero se incluye para reflejar el dominio completo (BookingState en el código).
+enum BookingState {
+  free
+  pending
+  reserved
+}
+
+model Booking {
+  id         Int          @id @default(autoincrement())
+  name       String
+  phone      String
+  startDate  DateTime     @map("start_date")
+  endDate    DateTime     @map("end_date")
+  state      BookingState @default(pending)
+  notes      String?
+  createDate DateTime     @default(now()) @map("create_date")
+
+  @@index([startDate, endDate])
+  @@map("bookings")
+}
+
+// ─────────────────────────────────────────
+// NEWS (Noticias del ayuntamiento)
+// ─────────────────────────────────────────
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  image       String?
+  uploadDate  DateTime @default(now()) @map("upload_date")
+
+  @@map("news")
+}
+
+// ─────────────────────────────────────────
+// EVENTS (Eventos del ayuntamiento)
+// ─────────────────────────────────────────
+
+enum Category {
+  sports
+  festive
+  religious
+  other
+}
+
+model Event {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  image        String?
+  creationDate DateTime @default(now()) @map("creation_date")
+  eventDate    DateTime @map("event_date")
+  category     Category
+
+  @@map("events")
+}
