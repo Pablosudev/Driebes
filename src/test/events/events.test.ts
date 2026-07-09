@@ -1,8 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../app';
 
 const app = createApp();
+
+// Todos los endpoints de recursos requieren autenticación: obtenemos un token
+// del admin semilla antes de los tests y lo enviamos en cada petición vía `api`.
+let bearer: string;
+beforeAll(async () => {
+  const res = await request(app)
+    .post('/auth/login')
+    .send({ email: 'admin@ayto.local', password: 'admin1234' });
+  bearer = `Bearer ${res.body.token}`;
+});
+
+const api = {
+  get: (url: string) => request(app).get(url).set('Authorization', bearer),
+  post: (url: string) => request(app).post(url).set('Authorization', bearer),
+  put: (url: string) => request(app).put(url).set('Authorization', bearer),
+  patch: (url: string) => request(app).patch(url).set('Authorization', bearer),
+  delete: (url: string) => request(app).delete(url).set('Authorization', bearer),
+};
 
 async function createEvent(
   title = 'Feria de verano',
@@ -10,7 +28,7 @@ async function createEvent(
   description = 'Celebración anual de la feria del pueblo.',
   eventDate = '2026-08-15T18:00:00Z',
 ) {
-  return request(app)
+  return api
     .post('/events')
     .field('title', title)
     .field('description', description)
@@ -33,7 +51,7 @@ describe('Events', () => {
     });
 
     it('permite subir una imagen opcional', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/events')
         .field('title', 'Evento con imagen')
         .field('description', 'Descripción de prueba')
@@ -46,7 +64,7 @@ describe('Events', () => {
     });
 
     it('devuelve 400 si falta el title', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/events')
         .field('description', 'Sin title')
         .field('eventDate', '2026-08-15T18:00:00Z')
@@ -56,7 +74,7 @@ describe('Events', () => {
     });
 
     it('devuelve 400 si falta la description', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/events')
         .field('title', 'Sin description')
         .field('eventDate', '2026-08-15T18:00:00Z')
@@ -66,7 +84,7 @@ describe('Events', () => {
     });
 
     it('devuelve 400 si falta eventDate', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/events')
         .field('title', 'Sin fecha')
         .field('description', 'Descripción')
@@ -76,7 +94,7 @@ describe('Events', () => {
     });
 
     it('devuelve 400 si falta category', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/events')
         .field('title', 'Sin categoría')
         .field('description', 'Descripción')
@@ -90,7 +108,7 @@ describe('Events', () => {
     it('devuelve 200 y un array de eventos', async () => {
       await createEvent();
 
-      const res = await request(app).get('/events');
+      const res = await api.get('/events');
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -98,7 +116,7 @@ describe('Events', () => {
     });
 
     it('responde en formato JSON', async () => {
-      const res = await request(app).get('/events');
+      const res = await api.get('/events');
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -107,7 +125,7 @@ describe('Events', () => {
     it('cada evento del listado incluye los campos del modelo', async () => {
       const creado = await createEvent('Con forma', 'sports');
 
-      const res = await request(app).get('/events');
+      const res = await api.get('/events');
       const evento = res.body.find((e: { id: number }) => e.id === creado.body.id);
 
       expect(evento).toBeDefined();
@@ -123,7 +141,7 @@ describe('Events', () => {
     it('incluye un evento recién creado con sus datos', async () => {
       const creado = await createEvent('Maratón popular', 'sports');
 
-      const res = await request(app).get('/events');
+      const res = await api.get('/events');
       const evento = res.body.find((e: { id: number }) => e.id === creado.body.id);
 
       expect(evento).toMatchObject({
@@ -137,7 +155,7 @@ describe('Events', () => {
       const deportivo = await createEvent('Liga local', 'sports');
       const festivo = await createEvent('Fiestas patronales', 'festive');
 
-      const res = await request(app).get('/events?category=sports');
+      const res = await api.get('/events?category=sports');
       const ids = res.body.map((e: { id: number }) => e.id);
 
       expect(res.status).toBe(200);
@@ -151,7 +169,7 @@ describe('Events', () => {
     it('devuelve 200 y el evento solicitado', async () => {
       const creado = await createEvent('Evento concreto', 'sports');
 
-      const res = await request(app).get(`/events/${creado.body.id}`);
+      const res = await api.get(`/events/${creado.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(creado.body.id);
@@ -162,7 +180,7 @@ describe('Events', () => {
     it('responde en formato JSON', async () => {
       const creado = await createEvent();
 
-      const res = await request(app).get(`/events/${creado.body.id}`);
+      const res = await api.get(`/events/${creado.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -171,7 +189,7 @@ describe('Events', () => {
     it('el evento devuelto incluye todos los campos del modelo', async () => {
       const creado = await createEvent('Con forma', 'sports');
 
-      const res = await request(app).get(`/events/${creado.body.id}`);
+      const res = await api.get(`/events/${creado.body.id}`);
 
       expect(typeof res.body.id).toBe('number');
       expect(typeof res.body.title).toBe('string');
@@ -186,7 +204,7 @@ describe('Events', () => {
       await createEvent('Primero', 'sports');
       const segundo = await createEvent('Segundo', 'festive');
 
-      const res = await request(app).get(`/events/${segundo.body.id}`);
+      const res = await api.get(`/events/${segundo.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(segundo.body.id);
@@ -194,7 +212,7 @@ describe('Events', () => {
     });
 
     it('devuelve 404 si el evento no existe', async () => {
-      const res = await request(app).get('/events/999999');
+      const res = await api.get('/events/999999');
 
       expect(res.status).toBe(404);
     });
@@ -204,7 +222,7 @@ describe('Events', () => {
     it('actualiza un evento existente y devuelve 200', async () => {
       const creado = await createEvent('Título original', 'sports');
 
-      const res = await request(app)
+      const res = await api
         .put(`/events/${creado.body.id}`)
         .field('title', 'Título actualizado')
         .field('description', 'Descripción actualizada')
@@ -221,14 +239,14 @@ describe('Events', () => {
     it('persiste el cambio (un GET posterior devuelve los datos actualizados)', async () => {
       const creado = await createEvent('Antes', 'sports');
 
-      await request(app)
+      await api
         .put(`/events/${creado.body.id}`)
         .field('title', 'Después')
         .field('description', 'Contenido después')
         .field('eventDate', '2026-10-01T10:00:00Z')
         .field('category', 'religious');
 
-      const res = await request(app).get(`/events/${creado.body.id}`);
+      const res = await api.get(`/events/${creado.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Después');
@@ -239,7 +257,7 @@ describe('Events', () => {
     it('responde en formato JSON', async () => {
       const creado = await createEvent();
 
-      const res = await request(app)
+      const res = await api
         .put(`/events/${creado.body.id}`)
         .field('title', 'Editado')
         .field('description', 'Editado')
@@ -253,7 +271,7 @@ describe('Events', () => {
     it('devuelve 400 si los datos son inválidos', async () => {
       const creado = await createEvent();
 
-      const res = await request(app)
+      const res = await api
         .put(`/events/${creado.body.id}`)
         .field('description', 'Falta el title')
         .field('eventDate', '2026-09-20T18:00:00Z')
@@ -263,7 +281,7 @@ describe('Events', () => {
     });
 
     it('devuelve 404 si el evento no existe', async () => {
-      const res = await request(app)
+      const res = await api
         .put('/events/999999')
         .field('title', 'No existe')
         .field('description', 'No existe')
@@ -278,21 +296,21 @@ describe('Events', () => {
     it('elimina un evento existente y devuelve 204', async () => {
       const creado = await createEvent();
 
-      const res = await request(app).delete(`/events/${creado.body.id}`);
+      const res = await api.delete(`/events/${creado.body.id}`);
 
       expect(res.status).toBe(204);
 
       // Tras eliminarlo, ya no debe encontrarse.
-      const verificacion = await request(app).get(`/events/${creado.body.id}`);
+      const verificacion = await api.get(`/events/${creado.body.id}`);
       expect(verificacion.status).toBe(404);
     });
 
     it('el evento eliminado desaparece del listado', async () => {
       const creado = await createEvent('Para borrar', 'sports');
 
-      await request(app).delete(`/events/${creado.body.id}`);
+      await api.delete(`/events/${creado.body.id}`);
 
-      const res = await request(app).get('/events');
+      const res = await api.get('/events');
       const ids = res.body.map((e: { id: number }) => e.id);
       expect(ids).not.toContain(creado.body.id);
     });
@@ -301,15 +319,15 @@ describe('Events', () => {
       const aBorrar = await createEvent('A borrar', 'sports');
       const superviviente = await createEvent('Superviviente', 'festive');
 
-      await request(app).delete(`/events/${aBorrar.body.id}`);
+      await api.delete(`/events/${aBorrar.body.id}`);
 
-      const res = await request(app).get(`/events/${superviviente.body.id}`);
+      const res = await api.get(`/events/${superviviente.body.id}`);
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(superviviente.body.id);
     });
 
     it('devuelve 404 si el evento no existe', async () => {
-      const res = await request(app).delete('/events/999999');
+      const res = await api.delete('/events/999999');
 
       expect(res.status).toBe(404);
     });

@@ -1,8 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../app';
 
 const app = createApp();
+
+// Todos los endpoints de recursos requieren autenticación: obtenemos un token
+// del admin semilla antes de los tests y lo enviamos en cada petición vía `api`.
+let bearer: string;
+beforeAll(async () => {
+  const res = await request(app)
+    .post('/auth/login')
+    .send({ email: 'admin@ayto.local', password: 'admin1234' });
+  bearer = `Bearer ${res.body.token}`;
+});
+
+const api = {
+  get: (url: string) => request(app).get(url).set('Authorization', bearer),
+  post: (url: string) => request(app).post(url).set('Authorization', bearer),
+  put: (url: string) => request(app).put(url).set('Authorization', bearer),
+  patch: (url: string) => request(app).patch(url).set('Authorization', bearer),
+  delete: (url: string) => request(app).delete(url).set('Authorization', bearer),
+};
 
 /**
  * Tests de integración para la gestión CRUD de Noticias.
@@ -24,7 +42,7 @@ async function crearNoticia(
   title = 'Corte de agua el lunes',
   description = 'El suministro estará cortado de 9h a 14h en la calle Mayor.',
 ) {
-  return request(app)
+  return api
     .post('/news')
     .field('title', title)
     .field('description', description);
@@ -45,7 +63,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('permite subir una imagen opcional', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/news')
         .field('title', 'Noticia con imagen')
         .field('description', 'Descripción de prueba')
@@ -56,7 +74,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('devuelve 400 si falta el title', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/news')
         .field('description', 'Sin title');
 
@@ -64,7 +82,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('devuelve 400 si falta la description', async () => {
-      const res = await request(app)
+      const res = await api
         .post('/news')
         .field('title', 'Sin description');
 
@@ -76,7 +94,7 @@ describe('Noticias - CRUD', () => {
     it('devuelve 200 y un array de noticias', async () => {
       await crearNoticia();
 
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -84,7 +102,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('responde en formato JSON', async () => {
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -93,7 +111,7 @@ describe('Noticias - CRUD', () => {
     it('cada noticia del listado incluye los campos del modelo', async () => {
       const creada = await crearNoticia('Noticia con forma', 'Contenido de prueba');
 
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
       const noticia = res.body.find((n: { id: number }) => n.id === creada.body.id);
 
       expect(noticia).toBeDefined();
@@ -107,7 +125,7 @@ describe('Noticias - CRUD', () => {
     it('incluye una noticia recién creada con sus datos', async () => {
       const creada = await crearNoticia('Listado específico', 'Aparece en el GET');
 
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
       const noticia = res.body.find((n: { id: number }) => n.id === creada.body.id);
 
       expect(noticia).toMatchObject({
@@ -121,7 +139,7 @@ describe('Noticias - CRUD', () => {
       const primera = await crearNoticia('Primera del recuento', 'Contenido A');
       const segunda = await crearNoticia('Segunda del recuento', 'Contenido B');
 
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
       const ids = res.body.map((n: { id: number }) => n.id);
 
       expect(ids).toContain(primera.body.id);
@@ -133,7 +151,7 @@ describe('Noticias - CRUD', () => {
     it('devuelve 200 y la noticia solicitada', async () => {
       const creada = await crearNoticia('Noticia concreta', 'Contenido');
 
-      const res = await request(app).get(`/news/${creada.body.id}`);
+      const res = await api.get(`/news/${creada.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(creada.body.id);
@@ -144,7 +162,7 @@ describe('Noticias - CRUD', () => {
     it('responde en formato JSON', async () => {
       const creada = await crearNoticia();
 
-      const res = await request(app).get(`/news/${creada.body.id}`);
+      const res = await api.get(`/news/${creada.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/application\/json/);
@@ -153,7 +171,7 @@ describe('Noticias - CRUD', () => {
     it('la noticia devuelta incluye todos los campos del modelo', async () => {
       const creada = await crearNoticia('Con forma', 'Contenido de prueba');
 
-      const res = await request(app).get(`/news/${creada.body.id}`);
+      const res = await api.get(`/news/${creada.body.id}`);
 
       expect(typeof res.body.id).toBe('number');
       expect(typeof res.body.title).toBe('string');
@@ -166,7 +184,7 @@ describe('Noticias - CRUD', () => {
       await crearNoticia('Primera', 'Contenido A');
       const segunda = await crearNoticia('Segunda', 'Contenido B');
 
-      const res = await request(app).get(`/news/${segunda.body.id}`);
+      const res = await api.get(`/news/${segunda.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(segunda.body.id);
@@ -174,7 +192,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('devuelve 404 si la noticia no existe', async () => {
-      const res = await request(app).get('/news/999999');
+      const res = await api.get('/news/999999');
 
       expect(res.status).toBe(404);
     });
@@ -184,7 +202,7 @@ describe('Noticias - CRUD', () => {
     it('actualiza una noticia existente y devuelve 200', async () => {
       const creada = await crearNoticia('Title original', 'Description original');
 
-      const res = await request(app)
+      const res = await api
         .put(`/news/${creada.body.id}`)
         .field('title', 'Title actualizado')
         .field('description', 'Description actualizada');
@@ -198,12 +216,12 @@ describe('Noticias - CRUD', () => {
     it('persiste el cambio (un GET posterior devuelve los datos actualizados)', async () => {
       const creada = await crearNoticia('Antes', 'Contenido antes');
 
-      await request(app)
+      await api
         .put(`/news/${creada.body.id}`)
         .field('title', 'Después')
         .field('description', 'Contenido después');
 
-      const res = await request(app).get(`/news/${creada.body.id}`);
+      const res = await api.get(`/news/${creada.body.id}`);
 
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Después');
@@ -213,7 +231,7 @@ describe('Noticias - CRUD', () => {
     it('responde en formato JSON', async () => {
       const creada = await crearNoticia();
 
-      const res = await request(app)
+      const res = await api
         .put(`/news/${creada.body.id}`)
         .field('title', 'Editada')
         .field('description', 'Editada');
@@ -225,7 +243,7 @@ describe('Noticias - CRUD', () => {
     it('devuelve 400 si los datos son inválidos', async () => {
       const creada = await crearNoticia();
 
-      const res = await request(app)
+      const res = await api
         .put(`/news/${creada.body.id}`)
         .field('description', 'Falta el title');
 
@@ -233,7 +251,7 @@ describe('Noticias - CRUD', () => {
     });
 
     it('devuelve 404 si la noticia no existe', async () => {
-      const res = await request(app)
+      const res = await api
         .put('/news/999999')
         .field('title', 'No existe')
         .field('description', 'No existe');
@@ -246,21 +264,21 @@ describe('Noticias - CRUD', () => {
     it('elimina una noticia existente y devuelve 204', async () => {
       const creada = await crearNoticia();
 
-      const res = await request(app).delete(`/news/${creada.body.id}`);
+      const res = await api.delete(`/news/${creada.body.id}`);
 
       expect(res.status).toBe(204);
 
       // Tras eliminarla, ya no debe encontrarse.
-      const verificacion = await request(app).get(`/news/${creada.body.id}`);
+      const verificacion = await api.get(`/news/${creada.body.id}`);
       expect(verificacion.status).toBe(404);
     });
 
     it('la noticia eliminada desaparece del listado', async () => {
       const creada = await crearNoticia('Para borrar', 'Contenido');
 
-      await request(app).delete(`/news/${creada.body.id}`);
+      await api.delete(`/news/${creada.body.id}`);
 
-      const res = await request(app).get('/news');
+      const res = await api.get('/news');
       const ids = res.body.map((n: { id: number }) => n.id);
       expect(ids).not.toContain(creada.body.id);
     });
@@ -269,15 +287,15 @@ describe('Noticias - CRUD', () => {
       const aBorrar = await crearNoticia('A borrar', 'Contenido');
       const superviviente = await crearNoticia('Superviviente', 'Contenido');
 
-      await request(app).delete(`/news/${aBorrar.body.id}`);
+      await api.delete(`/news/${aBorrar.body.id}`);
 
-      const res = await request(app).get(`/news/${superviviente.body.id}`);
+      const res = await api.get(`/news/${superviviente.body.id}`);
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(superviviente.body.id);
     });
 
     it('devuelve 404 si la noticia no existe', async () => {
-      const res = await request(app).delete('/news/999999');
+      const res = await api.delete('/news/999999');
 
       expect(res.status).toBe(404);
     });

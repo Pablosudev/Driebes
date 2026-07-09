@@ -2,11 +2,59 @@
 
 ## Contexto
 
-API REST para la gestión de servicios municipales: noticias del pueblo, eventos y reservas de un local municipal.
+API REST para la gestión de servicios municipales: noticias del pueblo, eventos, reservas de un local municipal y ofertas de trabajo.
+
+Toda la API está protegida con autenticación (ver sección 1). El acceso lo usan los administradores del ayuntamiento.
 
 ---
 
-## 1. Noticias
+## 1. Autenticación
+
+Autenticación basada en **JWT** (token firmado). El login lo utilizan los administradores del ayuntamiento (personal municipal) para gestionar noticias, eventos, reservas y ofertas de trabajo.
+
+### Regla de acceso
+
+Todos los endpoints requieren un token JWT válido, **salvo estas excepciones públicas**:
+
+- `POST /auth/login` — necesario para obtener el token.
+- `GET /health` — comprobación de estado del servicio.
+
+### Modelo (Usuario administrador)
+
+| Campo        | Tipo     | Notas                                             |
+|--------------|----------|---------------------------------------------------|
+| id           | number   | Autoincremental                                   |
+| email        | string   | Único, requerido                                  |
+| passwordHash | string   | Hash de la contraseña (bcrypt/argon2), nunca se devuelve en las respuestas |
+| name         | string   | Nombre del usuario, requerido                     |
+| createDate   | datetime | Autogenerada al crear                             |
+
+> No existe endpoint público de registro. Los usuarios administradores se crean por semilla inicial o de forma manual (fuera del alcance de este documento).
+
+### Endpoints
+
+| Método | Ruta          | Descripción                                                            |
+|--------|---------------|------------------------------------------------------------------------|
+| POST   | /auth/login   | **Público.** Recibe `{ email, password }` y devuelve `{ token, user }` |
+| POST   | /auth/logout  | Requiere token. Cierra la sesión del cliente                           |
+| GET    | /auth/me      | Requiere token. Devuelve el usuario autenticado                        |
+
+### Flujo del token
+
+1. Un login válido devuelve un token firmado (HS256) con caducidad (`JWT_EXPIRES_IN`), usando el secreto `JWT_SECRET`.
+2. El cliente envía el token en cada petición protegida mediante la cabecera `Authorization: Bearer <token>`.
+3. Un middleware (`requireAuth`) verifica el token; si es válido, añade el usuario a la petición (`req.user`); si falta, es inválido o ha caducado → `401`.
+4. **Logout**: al ser JWT *stateless*, el cliente descarta el token. Opcionalmente, el servidor puede mantener una lista de revocación (*denylist*) para invalidarlo antes de su caducidad.
+
+### Errores
+
+- `400` — credenciales mal formadas (falta email o password).
+- `401` — credenciales inválidas, o token ausente / inválido / caducado.
+- `403` — reservado para permisos insuficientes (si en el futuro se añaden roles).
+
+---
+
+## 2. Noticias
 
 ### Modelo
 
@@ -20,6 +68,8 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ### Endpoints
 
+Todos requieren autenticación (ver sección 1).
+
 | Método | Ruta            | Descripción                                          |
 |--------|-----------------|------------------------------------------------------|
 | GET    | /news           | Listar todas las noticias                            |
@@ -30,7 +80,7 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ---
 
-## 2. Eventos
+## 3. Eventos
 
 ### Modelo
 
@@ -46,6 +96,8 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ### Endpoints
 
+Todos requieren autenticación (ver sección 1).
+
 | Método | Ruta                         | Descripción                                       |
 |--------|------------------------------|---------------------------------------------------|
 | GET    | /events                      | Listar todos los eventos                          |
@@ -57,7 +109,7 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ---
 
-## 3. Reservas del local municipal
+## 4. Reservas del local municipal
 
 ### Modelo
 
@@ -80,6 +132,8 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ### Endpoints
 
+Todos requieren autenticación (ver sección 1).
+
 | Método | Ruta                       | Descripción                                        |
 |--------|----------------------------|----------------------------------------------------|
 | GET    | /bookings                  | Listar todas las reservas                          |
@@ -92,9 +146,42 @@ API REST para la gestión de servicios municipales: noticias del pueblo, eventos
 
 ---
 
+## 5. Ofertas de trabajo
+
+Bolsa de empleo municipal: el ayuntamiento publica y gestiona ofertas de trabajo (CRUD completo).
+
+### Modelo
+
+| Campo        | Tipo     | Notas                                     |
+|--------------|----------|-------------------------------------------|
+| id           | number   | Autoincremental                           |
+| title        | string   | Requerido                                 |
+| description  | string   | Requerido                                 |
+| requirements | string   | Requisitos del puesto (texto libre), requerido |
+| companyName  | string   | Nombre de la empresa, requerido           |
+| phone        | string   | Contacto, opcional                        |
+| email        | string   | Contacto, opcional                        |
+| createDate   | datetime | Autogenerada al crear                     |
+
+### Endpoints
+
+Todos requieren autenticación (ver sección 1).
+
+| Método | Ruta        | Descripción                       |
+|--------|-------------|-----------------------------------|
+| GET    | /jobs       | Listar todas las ofertas          |
+| GET    | /jobs/:id   | Obtener una oferta por ID         |
+| POST   | /jobs       | Crear una oferta                  |
+| PUT    | /jobs/:id   | Actualizar una oferta             |
+| DELETE | /jobs/:id   | Eliminar una oferta               |
+
+---
+
 ## Consideraciones generales
 
+- **Autenticación**: JWT vía cabecera `Authorization: Bearer <token>`. Todos los endpoints requieren token salvo `POST /auth/login` y `GET /health`. Variables de entorno necesarias: `JWT_SECRET` y `JWT_EXPIRES_IN` (añadir a `.env` y `.env.example`).
+- **Contraseñas**: se almacenan siempre con hash (bcrypt/argon2), nunca en texto plano ni se devuelven en las respuestas.
 - **Subida de imágenes**: noticias y eventos aceptan `multipart/form-data`. Las imágenes se almacenan en disco local (carpeta `/uploads`) y se devuelve la URL de acceso.
 - **Formato de respuesta**: JSON en todos los endpoints.
-- **Errores**: respuestas estándar con código HTTP y mensaje descriptivo (`400`, `404`, `500`).
-- **Base de datos**: a definir (SQLite para desarrollo, PostgreSQL/MySQL para producción).
+- **Errores**: respuestas estándar con código HTTP y mensaje descriptivo (`400`, `401`, `403`, `404`, `409`, `500`).
+- **Base de datos**: PostgreSQL gestionada con Prisma (esquema y migraciones). Las nuevas tablas `users` y `jobs` se añaden vía migración de Prisma.

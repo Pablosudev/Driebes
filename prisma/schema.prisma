@@ -73,3 +73,34 @@ model Event {
 
   @@map("events")
 }
+
+// ─────────────────────────────────────────
+// USERS (Administradores del ayuntamiento)
+// ─────────────────────────────────────────
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createDate   DateTime @default(now()) @map("create_date")
+
+  @@map("users")
+}
+
+// ─────────────────────────────────────────
+// JOBS (Ofertas de trabajo)
+// ─────────────────────────────────────────
+
+model Job {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
+  requirements String
+  companyName  String   @map("company_name")
+  phone        String?
+  email        String?
+  createDate   DateTime @default(now()) @map("create_date")
+
+  @@map("jobs")
+}
