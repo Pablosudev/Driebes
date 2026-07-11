@@ -4,6 +4,8 @@ export interface JobRepository {
   save(data: Omit<JobInterface, 'id'>): Promise<JobInterface>;
   findAll(): Promise<JobInterface[]>;
   findById(id: number): Promise<JobInterface | null>;
+  update(id: number, data: Omit<JobInterface, 'id' | 'createDate'>): Promise<JobInterface | null>;
+  delete(id: number): Promise<void>;
 }
 
 export class InMemoryJobRepository implements JobRepository {
@@ -22,5 +24,20 @@ export class InMemoryJobRepository implements JobRepository {
 
   async findById(id: number): Promise<JobInterface | null> {
     return this.jobs.get(id) ?? null;
+  }
+
+  async update(id: number, data: Omit<JobInterface, 'id' | 'createDate'>): Promise<JobInterface | null> {
+    const current = this.jobs.get(id);
+    if (!current) {
+      return null;
+    }
+
+    const updated: JobInterface = { ...current, ...data };
+    this.jobs.set(id, updated);
+    return updated;
+  }
+
+  async delete(id: number): Promise<void> {
+    this.jobs.delete(id);
   }
 }

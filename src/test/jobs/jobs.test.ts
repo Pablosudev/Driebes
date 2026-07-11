@@ -38,6 +38,7 @@ const api = {
   get: (url: string) => request(app).get(url).set('Authorization', bearer),
   post: (url: string) => request(app).post(url).set('Authorization', bearer),
   put: (url: string) => request(app).put(url).set('Authorization', bearer),
+  delete: (url: string) => request(app).delete(url).set('Authorization', bearer),
 };
 
 // Helper: crea una oferta válida (todos los campos) y devuelve la respuesta.
@@ -357,6 +358,58 @@ describe('Ofertas de trabajo - PUT /jobs/:id', () => {
 
   it('devuelve 401 si no se envía token', async () => {
     const res = await request(app).put('/jobs/1').send(datosValidos);
+
+    expect(res.status).toBe(401);
+  });
+});
+
+/**
+ * DELETE /jobs/:id — eliminar una oferta (docs/0001-diseno-api.md, sección 5).
+ * NOTA (TDD): describe comportamiento aún NO implementado; fallará hasta que
+ * exista la eliminación en /jobs/:id.
+ */
+describe('Ofertas de trabajo - DELETE /jobs/:id', () => {
+  it('elimina una oferta existente y devuelve 204', async () => {
+    const creada = await crearOferta();
+
+    const res = await api.delete(`/jobs/${creada.body.id}`);
+
+    expect(res.status).toBe(204);
+
+    // Tras eliminarla, ya no debe encontrarse.
+    const verificacion = await api.get(`/jobs/${creada.body.id}`);
+    expect(verificacion.status).toBe(404);
+  });
+
+  it('la oferta eliminada desaparece del listado', async () => {
+    const creada = await crearOferta({ title: 'Para borrar' });
+
+    await api.delete(`/jobs/${creada.body.id}`);
+
+    const res = await api.get('/jobs');
+    const ids = res.body.map((j: { id: number }) => j.id);
+    expect(ids).not.toContain(creada.body.id);
+  });
+
+  it('no afecta a otras ofertas', async () => {
+    const aBorrar = await crearOferta({ title: 'A borrar' });
+    const superviviente = await crearOferta({ title: 'Superviviente' });
+
+    await api.delete(`/jobs/${aBorrar.body.id}`);
+
+    const res = await api.get(`/jobs/${superviviente.body.id}`);
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe(superviviente.body.id);
+  });
+
+  it('devuelve 404 si la oferta no existe', async () => {
+    const res = await api.delete('/jobs/999999');
+
+    expect(res.status).toBe(404);
+  });
+
+  it('devuelve 401 si no se envía token', async () => {
+    const res = await request(app).delete('/jobs/1');
 
     expect(res.status).toBe(401);
   });

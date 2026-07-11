@@ -44,4 +44,28 @@ export class PostgresJobRepository implements JobRepository {
     const row = await this.prisma.job.findUnique({ where: { id } });
     return row ? toJob(row) : null;
   }
+
+  async update(id: number, data: Omit<JobInterface, 'id' | 'createDate'>): Promise<JobInterface | null> {
+    const exists = await this.prisma.job.findUnique({ where: { id } });
+    if (!exists) {
+      return null;
+    }
+
+    const updated = await this.prisma.job.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        requirements: data.requirements,
+        companyName: data.companyName,
+        phone: data.phone,
+        email: data.email,
+      },
+    });
+    return toJob(updated);
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.prisma.job.delete({ where: { id } });
+  }
 }
