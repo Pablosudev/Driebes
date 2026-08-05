@@ -1,30 +1,25 @@
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { IoLogOutOutline } from "react-icons/io5";
+import { useAppDispatch } from "../../store/hooks";
 import { logoutThunk } from "../../modules/login/Features/authThunk";
 
 export default function Navbar() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-3.5 dark:border-slate-700 dark:bg-slate-800">
-      <span className="text-[1.0625rem] font-semibold tracking-tight">
-        Dashboard Ayto
-      </span>
-
+    <header className="flex items-center justify-end gap-4 border-b border-tertiary-200 bg-white px-6 py-3.5">
       <div className="flex items-center gap-3.5">
-        {/* El usuario puede no estar cargado si la sesion se rehidrato solo del
-            token: entonces no hay nombre que mostrar, pero la sesion es valida. */}
-        {user && (
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            {user.name}
-          </span>
-        )}
+        <div className="text-right leading-tight">
+          <p className="font-label text-label text-neutral">Pablo López</p>
+          <p className="font-body text-xs text-secondary-500">Administrador</p>
+        </div>
         <button
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-[0.8125rem] font-medium transition hover:border-brand-600 hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-600 dark:border-slate-600 dark:hover:border-brand-400 dark:hover:text-brand-400"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-tertiary-100 text-secondary-600 transition-colors hover:bg-tertiary-200 hover:text-primary"
           type="button"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
           onClick={() => dispatch(logoutThunk())}
         >
-          Cerrar sesión
+          <IoLogOutOutline className="h-5 w-5" />
         </button>
       </div>
     </header>

@@ -4,24 +4,24 @@ import MenuSide from "./MenuSide";
 import Navbar from "./Navbar";
 
 export default function Layout() {
-  const token = useAppSelector((state) => state.auth.token);
+  // const token = useAppSelector((state) => state.auth.token);
 
-  // Este layout envuelve todas las rutas privadas, asi que es el sitio natural
-  // para la guarda de sesion. El token se rehidrata de localStorage, de modo
-  // que un refresco no expulsa al usuario al login.
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
+
+  // if (!token) {
+  //   return <Navigate to="/login" replace />;
+  // }
 
   return (
-    <div className="grid min-h-screen grid-rows-[auto_1fr]">
-      <Navbar />
-      <div className="grid min-h-0 grid-cols-1 md:grid-cols-[14rem_1fr]">
+    <div className="grid min-h-screen grid-cols-1 grid-rows-[auto_auto_1fr] md:grid-cols-[14rem_1fr] md:grid-rows-[auto_1fr]">
+      <div className="row-span-1 md:col-start-1 md:row-span-2">
         <MenuSide />
-        <main className="min-w-0 px-8 py-7">
-          <Outlet />
-        </main>
       </div>
+      <div className="md:col-start-2">
+        <Navbar />
+      </div>
+      <main className="min-w-0 px-8 py-7 md:col-start-2">
+        <Outlet />
+      </main>
     </div>
   );
 }

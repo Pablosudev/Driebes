@@ -1,37 +1,71 @@
+import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
+import { GrHomeRounded } from "react-icons/gr";
+import { IoCalendarClearOutline } from "react-icons/io5";
+import { MdOutlineWorkOutline } from "react-icons/md";
+import { ImCalendar } from "react-icons/im";
+import { TbNews } from "react-icons/tb";
 
-const sections = [
-  { to: "/news", label: "Noticias" },
-  { to: "/events", label: "Eventos" },
-  { to: "/bookings", label: "Reservas" },
-  { to: "/jobs", label: "Empleo" },
+const ICON_CLASS = "h-5 w-5 shrink-0";
+
+const sections: { to: string; label: string; icon: ReactNode }[] = [
+  {
+    to: "/",
+    label: "Inicio",
+    icon: <GrHomeRounded className={ICON_CLASS} />,
+  },
+  {
+    to: "/noticias",
+    label: "Noticias",
+    icon: <TbNews className={ICON_CLASS} />,
+  },
+  {
+    to: "/eventos",
+    label: "Eventos",
+    icon: <IoCalendarClearOutline className={ICON_CLASS} />,
+  },
+  {
+    to: "/ofertas",
+    label: "Trabajos",
+    icon: <MdOutlineWorkOutline className={ICON_CLASS} />,
+  },
+  {
+    to: "/reservas",
+    label: "Reservas",
+    icon: <ImCalendar className={ICON_CLASS} />,
+  },
 ];
-
-const baseLink =
-  "block rounded-md px-3 py-2 text-sm transition focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600";
-
-const inactiveLink =
-  "font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100";
-
-const activeLink =
-  "font-semibold bg-brand-50 text-brand-700 dark:bg-slate-700 dark:text-brand-300";
 
 export default function MenuSide() {
   return (
     <nav
-      className="border-b border-slate-200 bg-white px-3.5 py-5 md:border-r md:border-b-0 dark:border-slate-700 dark:bg-slate-800"
-      aria-label="Secciones del dashboard"
-    >
-      <ul className="flex list-none flex-row flex-wrap gap-0.5 p-0 md:flex-col">
+      className="flex h-full flex-col gap-5 border-b border-tertiary-200 bg-white px-3.5 py-5 md:border-r md:border-b-0"    >
+      <div className="flex items-center gap-2 px-1.5">
+        <img
+          src="/Logo.png"
+          alt=""
+          className="h-9 w-9 rounded-lg object-contain"
+        />
+        <span className="font-headline text-[0.9375rem] font-bold">
+          Gestión Municipal
+        </span>
+      </div>
+
+      <ul className="flex list-none flex-col gap-0.5 p-0">
         {sections.map((section) => (
           <li key={section.to}>
-            {/* NavLink resuelve el estado activo por nosotros. */}
             <NavLink
               to={section.to}
+              end={section.to === "/"}
               className={({ isActive }) =>
-                `${baseLink} ${isActive ? activeLink : inactiveLink}`
+                `flex items-center gap-2.5 rounded-xl px-3 py-2.5 font-label text-label transition-colors ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-neutral-700 hover:bg-tertiary-100"
+                }`
               }
             >
+              {section.icon}
               {section.label}
             </NavLink>
           </li>
