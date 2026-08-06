@@ -1,10 +1,28 @@
+import { useEffect, useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import PublicationCard from "../../../shared/components/PublicationCard";
+import PublicationFormModal from "../../../shared/components/PublicationFormModal";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { getNewsThunk } from "../Features/newsThunks";
 
 
 
 export default function News() {
+
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const dispatch = useAppDispatch();
+  const news = useAppSelector((state) => state.newsSlice.news);
+  const status = useAppSelector((state) => state.newsSlice.getAllNewsStatus);
+  const error = useAppSelector((state) => state.newsSlice.getAllNewsError);
+
+  useEffect(() => {
+    dispatch(getNewsThunk());
+  }, [dispatch]);
+
   return (
     <>
       <div className="flex items-start justify-between">
@@ -22,7 +40,11 @@ export default function News() {
             <FaChevronDown className="h-3.5 w-3.5 shrink-0" />
             Filtrar
           </button>
-          <button className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label text-white transition-colors hover:bg-primary-600">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-label text-label text-white transition-colors hover:bg-primary-600"
+          >
             <MdAdd className="h-4 w-4 shrink-0" />
             Añadir Noticia
           </button>
@@ -30,15 +52,31 @@ export default function News() {
       </div>
 
       <div className="mt-6">
-        <PublicationCard
-          image={null}
-          status="PUBLICADO"
-          date="15 Oct, 2023"
-          title="Maratón Anual de la Ciudad 2023"
-          description="Evento deportivo principal recorriendo las avenidas históricas del centro de la ciudad."
-          location="Plaza Mayor"
-        />
+        {status === "rejected" && error && (
+          <p className="mb-4 font-body text-body text-secondary-700">{error}</p>
+        )}
+
+        <div className="flex flex-wrap gap-4">
+          {news.map((newsItem) => (
+            <PublicationCard
+              key={newsItem.id}
+              image={newsItem.image}
+              status="PUBLICADO"
+              date={newsItem.uploadDate}
+              title={newsItem.title}
+              description={newsItem.description}
+              onClick={() => navigate(`/noticias/${newsItem.id}`)}
+            />
+          ))}
+        </div>
       </div>
+
+      {isModalOpen && (
+        <PublicationFormModal
+          type="news"
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </>
   );
 }

@@ -11,7 +11,8 @@ interface PublicationCardProps {
   date: string;
   title: string;
   description: string;
-  location: string;
+  location?: string;
+  onClick?: () => void;
 }
 
 export default function PublicationCard({
@@ -21,9 +22,23 @@ export default function PublicationCard({
   title,
   description,
   location,
+  onClick,
 }: PublicationCardProps) {
   return (
-    <article className="w-full max-w-[240px] border border-secondary-[50px] overflow-hidden rounded-2xl bg-white">
+    <article
+      onClick={onClick}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`w-full max-w-60 border border-secondary-[50px] overflow-hidden rounded-2xl bg-white ${
+        onClick ? "cursor-pointer transition-shadow hover:shadow-md" : ""
+      }`}
+    >
       <div className="relative flex h-40 items-center justify-center bg-tertiary-200">
         {image ? (
           <img src={image} alt="" className="h-full w-full object-cover" />
@@ -49,21 +64,12 @@ export default function PublicationCard({
           {description}
         </p>
 
-        <div className="flex items-center gap-1.5 font-body text-xs text-secondary-500">
-          <IoLocationOutline className="h-4 w-4" />
-          {location}
-        </div>
-
-        <div className="mt-1 flex items-center justify-between">
-        
-          <button
-            type="button"
-            className="rounded-md p-1 text-secondary-400 transition-colors hover:bg-tertiary-100 hover:text-secondary-600"
-            aria-label="Más opciones"
-          >
-            <IoEllipsisHorizontal className="h-4.5 w-4.5" />
-          </button>
-        </div>
+        {location && (
+          <div className="flex items-center gap-1.5 font-body text-xs text-secondary-500">
+            <IoLocationOutline className="h-4 w-4" />
+            {location}
+          </div>
+        )}
       </div>
     </article>
   );
