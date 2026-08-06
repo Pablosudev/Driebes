@@ -3,15 +3,38 @@ import { IoClose, IoImageOutline } from "react-icons/io5";
 
 export type PublicationType = "event" | "news" | "job";
 
+export interface PublicationFormValues {
+  title: string;
+  description: string;
+  image: File | null;
+  eventDate: string;
+  category: string;
+  requirements: string;
+  companyName: string;
+  phone: string;
+  email: string;
+}
+
 interface PublicationFormModalProps {
   type: PublicationType;
+  mode?: "create" | "edit";
+  initialValues?: Partial<PublicationFormValues>;
+  onSubmit?: (form: PublicationFormValues) => void | Promise<void>;
+  submitting?: boolean;
   onClose: () => void;
 }
 
-const MODAL_TITLE: Record<PublicationType, string> = {
-  event: "Nuevo Evento",
-  news: "Nueva Noticia",
-  job: "Nueva Oferta de Empleo",
+const MODAL_TITLE: Record<"create" | "edit", Record<PublicationType, string>> = {
+  create: {
+    event: "Nuevo Evento",
+    news: "Nueva Noticia",
+    job: "Nueva Oferta de Empleo",
+  },
+  edit: {
+    event: "Editar Evento",
+    news: "Editar Noticia",
+    job: "Editar Oferta de Empleo",
+  },
 };
 
 const CATEGORY_OPTIONS = [
@@ -23,24 +46,32 @@ const CATEGORY_OPTIONS = [
 
 export default function PublicationFormModal({
   type,
+  mode = "create",
+  initialValues,
+  onSubmit,
+  submitting = false,
   onClose,
 }: PublicationFormModalProps) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    image: null as File | null,
-    eventDate: "",
-    category: CATEGORY_OPTIONS[0].value,
-    requirements: "",
-    companyName: "",
-    phone: "",
-    email: "",
+  const [form, setForm] = useState<PublicationFormValues>({
+    title: initialValues?.title ?? "",
+    description: initialValues?.description ?? "",
+    image: initialValues?.image ?? null,
+    eventDate: initialValues?.eventDate ?? "",
+    category: initialValues?.category ?? CATEGORY_OPTIONS[0].value,
+    requirements: initialValues?.requirements ?? "",
+    companyName: initialValues?.companyName ?? "",
+    phone: initialValues?.phone ?? "",
+    email: initialValues?.email ?? "",
   });
 
-  /* Envio visual: la conexion con el slice/thunk correspondiente a cada
-     tipo (evento, noticia u oferta) se anadira mas adelante. */
-  function handleSubmit(event: React.SyntheticEvent) {
+  /* Sin onSubmit el envio es solo visual: la conexion con el slice/thunk
+     correspondiente a cada tipo se anadira mas adelante. */
+  async function handleSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
+    if (onSubmit) {
+      await onSubmit(form);
+      return;
+    }
     onClose();
   }
 
@@ -56,7 +87,9 @@ export default function PublicationFormModal({
         aria-modal="true"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 className="font-headline text-headline">{MODAL_TITLE[type]}</h2>
+          <h2 className="font-headline text-headline">
+            {MODAL_TITLE[mode][type]}
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -235,9 +268,14 @@ export default function PublicationFormModal({
             </button>
             <button
               type="submit"
-              className="rounded-lg bg-primary px-4 py-2 font-label text-label text-white transition-colors hover:bg-primary-600"
+              disabled={submitting}
+              className="rounded-lg bg-primary px-4 py-2 font-label text-label text-white transition-colors hover:bg-primary-600 disabled:opacity-60"
             >
-              Crear
+              {submitting
+                ? "Guardando..."
+                : mode === "edit"
+                  ? "Guardar"
+                  : "Crear"}
             </button>
           </div>
         </form>

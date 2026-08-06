@@ -1,20 +1,94 @@
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   IoBusinessOutline,
   IoCalendarClearOutline,
   IoCallOutline,
   IoImageOutline,
   IoInformationCircleOutline,
+  IoPencilOutline,
+  IoTrashOutline,
 } from "react-icons/io5";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import {
+  getJobsByIdThunk,
+  updateJobThunk,
+  deleteJobsThunk,
+} from "../Features/jobsThunks";
+import { clearJobId } from "../Features/jobsSlice";
+import PublicationFormModal from "../../../shared/components/PublicationFormModal";
+import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 
 export default function JobDetail() {
-  const description =
-    "Buscamos un/a desarrollador/a Frontend para incorporarse al equipo de Transformación Digital del Ayuntamiento. La persona seleccionada participará en el diseño y desarrollo de nuevas herramientas para la ciudadanía.";
-  const requirements =
-    "Se requiere experiencia previa con React y TypeScript, conocimientos de control de versiones con Git y capacidad para trabajar en equipo. Se valorará experiencia en el sector público.";
-  const companyName = "Ayuntamiento de la Ciudad";
-  const phone = "912 345 678";
-  const email = "empleo@ayuntamiento.es";
-  const createDate = "10 Ago, 2024";
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
+  const job = useAppSelector((state) => state.jobsSlice.jobById);
+  const getStatus = useAppSelector(
+    (state) => state.jobsSlice.getJobByIdStatus,
+  );
+  const getError = useAppSelector((state) => state.jobsSlice.getJobByIdError);
+  const updateStatus = useAppSelector(
+    (state) => state.jobsSlice.updateJobStatus,
+  );
+  const deleteStatus = useAppSelector(
+    (state) => state.jobsSlice.deleteJobStatus,
+  );
+  const deleteError = useAppSelector((state) => state.jobsSlice.deleteJobError);
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    dispatch(getJobsByIdThunk(Number(id)));
+    return () => {
+      dispatch(clearJobId());
+    };
+  }, [dispatch, id]);
+
+  async function handleUpdate(form: PublicationFormValues) {
+    if (!job) return;
+
+    const result = await dispatch(
+      updateJobThunk({
+        id: job.id,
+        jobData: {
+          title: form.title,
+          description: form.description,
+          requirements: form.requirements,
+          companyName: form.companyName,
+          phone: form.phone || null,
+          email: form.email || null,
+        },
+      }),
+    );
+    if (updateJobThunk.fulfilled.match(result)) setIsEditing(false);
+  }
+
+  async function handleDelete() {
+    if (!job) return;
+    const result = await dispatch(deleteJobsThunk(job.id));
+    if (deleteJobsThunk.fulfilled.match(result)) navigate("/ofertas");
+  }
+
+  if (getStatus === "pending") {
+    return (
+      <p className="font-body text-body text-secondary-500">
+        Cargando oferta...
+      </p>
+    );
+  }
+
+  if (getStatus === "rejected") {
+    return (
+      <p className="font-body text-body text-secondary-700">
+        {getError ?? "No se ha podido cargar la oferta."}
+      </p>
+    );
+  }
+
+  if (!job) return null;
 
   return (
     <>
@@ -23,16 +97,42 @@ export default function JobDetail() {
           <IoImageOutline className="h-10 w-10 text-tertiary-500" />
         </div>
 
-        <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-white p-5 shadow-md">
-          <span className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 font-label text-xs text-primary-700">
-            Tecnología
-          </span>
+        <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 rounded-2xl bg-white p-5 shadow-md">
+          <div>
+            <span className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 font-label text-xs text-primary-700">
+              {job.companyName}
+            </span>
 
-          <h1 className="mt-3 font-headline text-headline">
-            Desarrollador/a Frontend Municipal
-          </h1>
+            <h1 className="mt-3 font-headline text-headline">{job.title}</h1>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              aria-label="Editar oferta"
+              className="rounded-md p-2 text-secondary-400 transition-colors hover:bg-tertiary-100 hover:text-secondary-600"
+            >
+              <IoPencilOutline className="h-4.5 w-4.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteStatus === "pending"}
+              aria-label="Eliminar oferta"
+              className="rounded-md p-2 text-secondary-400 transition-colors hover:bg-tertiary-100 hover:text-secondary-700 disabled:opacity-60"
+            >
+              <IoTrashOutline className="h-4.5 w-4.5" />
+            </button>
+          </div>
         </div>
       </div>
+
+      {deleteStatus === "rejected" && deleteError && (
+        <p className="mt-4 font-body text-body text-secondary-700">
+          {deleteError}
+        </p>
+      )}
 
       <div className="mt-6 flex gap-6">
         <div className="flex-2 rounded-2xl bg-white p-6">
@@ -41,10 +141,10 @@ export default function JobDetail() {
             <h2 className="font-headline text-headline">Sobre la Oferta</h2>
           </div>
 
-          <p className="mt-4 font-body text-body">{description}</p>
+          <p className="mt-4 font-body text-body">{job.description}</p>
 
           <p className="mt-4 font-body text-body text-secondary-400">
-            {requirements}
+            {job.requirements}
           </p>
         </div>
 
@@ -55,7 +155,7 @@ export default function JobDetail() {
             </span>
             <div>
               <p className="font-body text-xs text-secondary-500">Empresa</p>
-              <p className="font-label text-label">{companyName}</p>
+              <p className="font-label text-label">{job.companyName}</p>
             </div>
           </div>
 
@@ -65,7 +165,7 @@ export default function JobDetail() {
             </span>
             <div>
               <p className="font-body text-xs text-secondary-500">Contacto</p>
-              <p className="font-label text-label">{phone ?? email}</p>
+              <p className="font-label text-label">{job.phone ?? job.email}</p>
             </div>
           </div>
 
@@ -77,11 +177,29 @@ export default function JobDetail() {
               <p className="font-body text-xs text-secondary-500">
                 Fecha de creación
               </p>
-              <p className="font-label text-label">{createDate}</p>
+              <p className="font-label text-label">{job.createDate}</p>
             </div>
           </div>
         </div>
       </div>
+
+      {isEditing && (
+        <PublicationFormModal
+          type="job"
+          mode="edit"
+          initialValues={{
+            title: job.title,
+            description: job.description,
+            requirements: job.requirements,
+            companyName: job.companyName,
+            phone: job.phone ?? "",
+            email: job.email ?? "",
+          }}
+          submitting={updateStatus === "pending"}
+          onSubmit={handleUpdate}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
     </>
   );
 }
