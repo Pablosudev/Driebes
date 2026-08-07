@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { MdAdd } from "react-icons/md";
 import PublicationCard from "../../../shared/components/PublicationCard";
 import PublicationFormModal from "../../../shared/components/PublicationFormModal";
+import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { getJobsThunk } from "../Features/jobsThunks";
+import { createJobThunk, getJobsThunk } from "../Features/jobsThunks";
 export default function Jobs() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -13,10 +14,29 @@ export default function Jobs() {
   const jobs = useAppSelector((state) => state.jobsSlice.jobs);
   const status = useAppSelector((state) => state.jobsSlice.getJobsStatus);
   const error = useAppSelector((state) => state.jobsSlice.getJobsError);
+  const createStatus = useAppSelector(
+    (state) => state.jobsSlice.createJobStatus,
+  );
+  const createError = useAppSelector((state) => state.jobsSlice.createJobError);
 
   useEffect(() => {
     dispatch(getJobsThunk());
   }, [dispatch]);
+
+  async function handleCreate(form: PublicationFormValues) {
+    const result = await dispatch(
+      createJobThunk({
+        title: form.title,
+        description: form.description,
+        requirements: form.requirements,
+        companyName: form.companyName,
+        /* Telefono y email son opcionales: el input vacio viaja como null. */
+        phone: form.phone || null,
+        email: form.email || null,
+      }),
+    );
+    if (createJobThunk.fulfilled.match(result)) setIsModalOpen(false);
+  }
 
   return (
     <>
@@ -45,6 +65,12 @@ export default function Jobs() {
       <div className="mt-6">
         {status === "rejected" && error && (
           <p className="mb-4 font-body text-body text-secondary-700">{error}</p>
+        )}
+
+        {createStatus === "rejected" && createError && (
+          <p className="mb-4 font-body text-body text-secondary-700">
+            {createError}
+          </p>
         )}
 
         <div className="flex flex-wrap gap-4">
@@ -76,6 +102,8 @@ export default function Jobs() {
       {isModalOpen && (
         <PublicationFormModal
           type="job"
+          submitting={createStatus === "pending"}
+          onSubmit={handleCreate}
           onClose={() => setIsModalOpen(false)}
         />
       )}

@@ -4,8 +4,10 @@ import { MdAdd } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import PublicationCard from "../../../shared/components/PublicationCard";
 import PublicationFormModal from "../../../shared/components/PublicationFormModal";
+import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { getEventsThunk } from "../Features/eventsThunks";
+import { createEventThunk, getEventsThunk } from "../Features/eventsThunks";
+import type { Category } from "../Interfaces/EventsInterface";
 
 export default function Events() {
   const navigate = useNavigate();
@@ -15,10 +17,29 @@ export default function Events() {
   const events = useAppSelector((state) => state.eventsSlice.events);
   const status = useAppSelector((state) => state.eventsSlice.getEventsStatus);
   const error = useAppSelector((state) => state.eventsSlice.getEventsError);
+  const createStatus = useAppSelector(
+    (state) => state.eventsSlice.createEventStatus,
+  );
+  const createError = useAppSelector(
+    (state) => state.eventsSlice.createEventError,
+  );
 
   useEffect(() => {
     dispatch(getEventsThunk());
   }, [dispatch]);
+
+  async function handleCreate(form: PublicationFormValues) {
+    const result = await dispatch(
+      createEventThunk({
+        title: form.title,
+        description: form.description,
+        eventDate: form.eventDate,
+        category: form.category as Category,
+        image: form.image,
+      }),
+    );
+    if (createEventThunk.fulfilled.match(result)) setIsModalOpen(false);
+  }
 
   return (
     <>
@@ -52,6 +73,12 @@ export default function Events() {
           <p className="mb-4 font-body text-body text-secondary-700">{error}</p>
         )}
 
+        {createStatus === "rejected" && createError && (
+          <p className="mb-4 font-body text-body text-secondary-700">
+            {createError}
+          </p>
+        )}
+
         <div className="flex flex-wrap gap-4">
           {/* Tarjeta falseada: se mantiene mientras seguimos maquetando. */}
           <PublicationCard
@@ -81,6 +108,8 @@ export default function Events() {
       {isModalOpen && (
         <PublicationFormModal
           type="event"
+          submitting={createStatus === "pending"}
+          onSubmit={handleCreate}
           onClose={() => setIsModalOpen(false)}
         />
       )}

@@ -201,7 +201,7 @@ describe("Login - mostrar contraseña", () => {
 // ---------------------------------------------------------------------------
 
 describe("Login - envio correcto", () => {
-  it("manda las credenciales escritas a POST /login", async () => {
+  it("manda las credenciales escritas a POST /auth/login", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(okResponse(authResponse));
     renderWithStore(<Login />);
@@ -211,7 +211,7 @@ describe("Login - envio correcto", () => {
     await user.click(submitButton());
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-    expect(fetchMock.mock.calls[0][0]).toBe(`${API_URL}/login`);
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_URL}/auth/login`);
     expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toEqual({
       email: "plopez@aries.es",
       password: "secreto",
@@ -412,7 +412,7 @@ describe("App - puerta de sesion", () => {
     await user.type(passwordInput(), "secreto");
     await user.click(submitButton());
 
-    expect(await screen.findByText(/Sesión iniciada como Pablo/)).toBeInTheDocument();
+    expect(await screen.findByText("Pablo")).toBeInTheDocument();
     expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
   });
 
@@ -424,7 +424,7 @@ describe("App - puerta de sesion", () => {
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
     await user.click(submitButton());
-    await screen.findByText(/Sesión iniciada/);
+    await screen.findByText("Pablo");
 
     await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
 

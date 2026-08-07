@@ -8,6 +8,7 @@ import {
   IoTrashOutline,
 } from "react-icons/io5";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { mediaUrl } from "../../../shared/apiFetch";
 import {
   getNewsByIdThunk,
   updateNewsThunk,
@@ -93,7 +94,7 @@ export default function NewDetail() {
         <div className="flex h-80 items-center justify-center bg-tertiary-200">
           {newsItem.image ? (
             <img
-              src={newsItem.image}
+              src={mediaUrl(newsItem.image)}
               alt=""
               className="h-full w-full object-cover"
             />

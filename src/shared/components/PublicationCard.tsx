@@ -4,6 +4,7 @@ import {
   IoImageOutline,
   IoLocationOutline,
 } from "react-icons/io5";
+import { mediaUrl } from "../apiFetch";
 
 interface PublicationCardProps {
   image: string | null;
@@ -41,7 +42,11 @@ export default function PublicationCard({
     >
       <div className="relative flex h-40 items-center justify-center bg-tertiary-200">
         {image ? (
-          <img src={image} alt="" className="h-full w-full object-cover" />
+          <img
+            src={mediaUrl(image)}
+            alt=""
+            className="h-full w-full object-cover"
+          />
         ) : (
           <IoImageOutline className="h-8 w-8 text-tertiary-500" />
         )}

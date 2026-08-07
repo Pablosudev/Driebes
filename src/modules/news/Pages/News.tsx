@@ -3,9 +3,10 @@ import { FaChevronDown } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import PublicationCard from "../../../shared/components/PublicationCard";
 import PublicationFormModal from "../../../shared/components/PublicationFormModal";
+import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { getNewsThunk } from "../Features/newsThunks";
+import { createNewsThunk, getNewsThunk } from "../Features/newsThunks";
 
 
 
@@ -18,10 +19,27 @@ export default function News() {
   const news = useAppSelector((state) => state.newsSlice.news);
   const status = useAppSelector((state) => state.newsSlice.getAllNewsStatus);
   const error = useAppSelector((state) => state.newsSlice.getAllNewsError);
+  const createStatus = useAppSelector(
+    (state) => state.newsSlice.createNewsStatus,
+  );
+  const createError = useAppSelector(
+    (state) => state.newsSlice.createNewsError,
+  );
 
   useEffect(() => {
     dispatch(getNewsThunk());
   }, [dispatch]);
+
+  async function handleCreate(form: PublicationFormValues) {
+    const result = await dispatch(
+      createNewsThunk({
+        title: form.title,
+        description: form.description,
+        image: form.image,
+      }),
+    );
+    if (createNewsThunk.fulfilled.match(result)) setIsModalOpen(false);
+  }
 
   return (
     <>
@@ -56,6 +74,12 @@ export default function News() {
           <p className="mb-4 font-body text-body text-secondary-700">{error}</p>
         )}
 
+        {createStatus === "rejected" && createError && (
+          <p className="mb-4 font-body text-body text-secondary-700">
+            {createError}
+          </p>
+        )}
+
         <div className="flex flex-wrap gap-4">
           {news.map((newsItem) => (
             <PublicationCard
@@ -74,6 +98,8 @@ export default function News() {
       {isModalOpen && (
         <PublicationFormModal
           type="news"
+          submitting={createStatus === "pending"}
+          onSubmit={handleCreate}
           onClose={() => setIsModalOpen(false)}
         />
       )}

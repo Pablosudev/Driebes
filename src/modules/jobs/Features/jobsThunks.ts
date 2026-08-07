@@ -52,20 +52,12 @@ export const createJobThunk = createAsyncThunk<
   { rejectValue: string }
 >("/jobs/create", async (jobData: JobInputInterface, thunkAPI) => {
   try {
-    const formData = new FormData();
-    formData.append("title", jobData.title);
-    formData.append("description", jobData.description);
-    formData.append("requirements", jobData.requirements);
-    formData.append("companyName", jobData.companyName);
-    if (jobData.phone) {
-      formData.append("phone", jobData.phone);
-    }
-    if (jobData.email) {
-      formData.append("email", jobData.email);
-    }
+    // Las ofertas no llevan imagen, asi que la API las recibe como JSON
+    // (express.json()) y no como multipart: con FormData req.body llega vacio.
     const response = await apiFetch(`/jobs`, {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jobData),
     });
     if (!response.ok) {
       const error = await response.json();
@@ -86,20 +78,10 @@ export const updateJobThunk = createAsyncThunk<
   { rejectValue: string }
 >("/jobs/update", async ({ id, jobData }, thunkAPI) => {
   try {
-    const formData = new FormData();
-    formData.append("title", jobData.title);
-    formData.append("description", jobData.description);
-    formData.append("requirements", jobData.requirements);
-    formData.append("companyName", jobData.companyName);
-    if (jobData.phone) {
-      formData.append("phone", jobData.phone);
-    }
-    if (jobData.email) {
-      formData.append("email", jobData.email);
-    }
     const response = await apiFetch(`/jobs/${id}`, {
       method: "PUT",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(jobData),
     });
     if (!response.ok) {
       const error = await response.json();

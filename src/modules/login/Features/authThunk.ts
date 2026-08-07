@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import type { AuthInput, AuthResponse } from "../Interfaces/authInterface";
+import type { AuthInput, AuthResponse, AuthUser } from "../Interfaces/authInterface";
 import { apiFetch, removeToken, saveToken } from "../../../shared/apiFetch";
 
 export const loginThunk = createAsyncThunk<
@@ -11,7 +11,7 @@ export const loginThunk = createAsyncThunk<
 
   async (credentials, thunkAPI) => {
     try {
-      const response = await apiFetch(`/login`, {
+      const response = await apiFetch(`/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,6 +33,36 @@ export const loginThunk = createAsyncThunk<
       return data;
     } catch {
       removeToken();
+      return thunkAPI.rejectWithValue("Error de conexión");
+    }
+  },
+);
+
+/** Marca de sesion invalida: la distingue de un fallo de red pasajero. */
+export const SESION_NO_VALIDA = "Sesión no válida";
+
+/**
+ * Recupera el usuario del token guardado.
+ *
+ * El slice rehidrata el token de localStorage pero no el usuario, asi que tras
+ * un F5 hay token y `user` a null. Este thunk rellena ese hueco preguntando a
+ * la API en vez de cachear datos de usuario en el navegador.
+ */
+export const meThunk = createAsyncThunk<AuthUser, void, { rejectValue: string }>(
+  "auth/me",
+  async (_, thunkAPI) => {
+    try {
+      const response = await apiFetch(`/auth/me`);
+
+      if (!response.ok) {
+        // 401: el token caduco o ya no vale. La sesion guardada sobra.
+        removeToken();
+        return thunkAPI.rejectWithValue(SESION_NO_VALIDA);
+      }
+
+      return (await response.json()) as AuthUser;
+    } catch {
+      // Fallo de red: el token puede seguir siendo bueno, no se descarta.
       return thunkAPI.rejectWithValue("Error de conexión");
     }
   },

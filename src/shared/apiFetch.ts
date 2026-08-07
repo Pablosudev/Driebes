@@ -41,6 +41,20 @@ export const removeToken = (): void => {
  * No fija Content-Type: quien envie JSON lo pasa en `init.headers`, y quien
  * envie FormData debe omitirlo para que el navegador ponga el boundary.
  */
+/**
+ * Convierte una ruta devuelta por la API en una URL absoluta.
+ *
+ * Las imagenes se guardan como "/uploads/news/xxx.jpg": si eso se mete tal cual
+ * en un <img src>, el navegador la resuelve contra el origen del dashboard y no
+ * contra el de la API, asi que la peticion acaba en 404.
+ */
+export const mediaUrl = (path: string | null): string | undefined => {
+  if (!path) return undefined;
+  // Por si algun dia la API devuelve la URL ya completa (p. ej. un CDN).
+  if (/^https?:\/\//.test(path)) return path;
+  return `${import.meta.env.VITE_API_URL}${path}`;
+};
+
 export const apiFetch = (path: string, init: RequestInit = {}): Promise<Response> => {
   const headers = new Headers(init.headers);
   const token = readToken();

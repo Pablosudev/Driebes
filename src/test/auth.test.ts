@@ -143,13 +143,13 @@ describe("authSlice - rehidratacion", () => {
 // ---------------------------------------------------------------------------
 
 describe("loginThunk", () => {
-  it("hace POST a /login con las credenciales en JSON", async () => {
+  it("hace POST a /auth/login con las credenciales en JSON", async () => {
     fetchMock.mockResolvedValue(okResponse(authResponse));
 
     await makeStore().dispatch(loginThunk(credentials));
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0][0]).toBe(`${API_URL}/login`);
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_URL}/auth/login`);
     expect(fetchInit().method).toBe("POST");
     expect(sentHeader("Content-Type")).toBe("application/json");
     expect(JSON.parse(fetchInit().body as string)).toEqual(credentials);
