@@ -14,7 +14,7 @@ function toNews(row: News): NewInterface {
   };
 }
 
-export class PostgresNewsRepository implements NewsRepository {
+export class PrismaNewsRepository implements NewsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async save(data: Omit<NewInterface, 'id'>): Promise<NewInterface> {

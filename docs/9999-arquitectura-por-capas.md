@@ -48,7 +48,7 @@ src/
 │       └── infrastructure/    # CAPA 2 y 3 — EL MUNDO EXTERIOR (lo técnico)
 │           ├── persistence/            # Guardar/leer datos
 │           │   ├── event.repository.ts         #   contrato + versión en memoria
-│           │   └── postgres-event.repository.ts#   versión con base de datos
+│           │   └── prisma-event.repository.ts  #   versión con base de datos
 │           └── transport/              # Entrada/salida por HTTP
 │               └── events.router.ts            #   rutas y respuestas ("controlador")
 │
@@ -81,7 +81,7 @@ Se encarga de **guardar y recuperar datos**. Aquí ocurre algo importante:
 - El fichero `*.repository.ts` define un **contrato** (una *interfaz*): *"quien guarde reservas debe saber `save`, `findById`, `delete`..."*.
 - Y luego hay **dos implementaciones** de ese contrato:
   - `InMemory...Repository` → guarda en memoria (se borra al apagar). Ideal para **pruebas**.
-  - `Postgres...Repository` → guarda en una base de datos PostgreSQL de verdad.
+  - `Prisma...Repository` → guarda en una base de datos de verdad, a través de Prisma.
 
 Como ambas cumplen el mismo contrato, **podemos cambiar una por otra sin tocar las reglas de negocio**. Es como cambiar la nevera por una despensa: al cocinero le da igual, sigue pidiendo "tráeme los huevos".
 
@@ -97,7 +97,7 @@ No contiene reglas de negocio: solo **traduce** entre "el mundo HTTP" y "el mund
 
 ### ⚙️ El `*.module.ts` — el encargado
 
-Crea las piezas y las **conecta** entre sí: elige qué repositorio usar (memoria o Postgres), crea los use cases con ese repositorio y se los pasa al router. A esto se le llama *inyección de dependencias*.
+Crea las piezas y las **conecta** entre sí: elige qué repositorio usar (memoria o MySQL), crea los use cases con ese repositorio y se los pasa al router. A esto se le llama *inyección de dependencias*.
 
 ---
 
@@ -116,7 +116,7 @@ Crea las piezas y las **conecta** entre sí: elige qué repositorio usar (memori
         └───────────────────┘
 ```
 
-- El **dominio NO conoce** a Express ni a Postgres.
+- El **dominio NO conoce** a Express ni a MySQL.
 - Son las capas de fuera las que **dependen** del dominio, nunca al revés.
 
 Por eso el dominio dice *"necesito algo que sepa guardar reservas"* (define la interfaz) y la persistencia responde *"yo sé hacerlo"* (la implementa). El corazón manda; los detalles se adaptan.
@@ -139,7 +139,7 @@ Sigue el recorrido de una petición por las capas:
       Si todo va bien, pide guardar la reserva
                                    │
 4. PERSISTENCIA  (booking.repository.ts)
-      Guarda la reserva (en memoria o en Postgres)
+      Guarda la reserva (en memoria o en MySQL)
                                    │
 5. La respuesta vuelve hacia fuera y el TRANSPORTE responde  201  con el JSON
 ```
@@ -152,7 +152,7 @@ Fíjate: cada capa hace **solo su parte** y le pasa el trabajo a la siguiente.
 
 - ✅ **Se entiende mejor**: cada fichero tiene un objetivo claro.
 - ✅ **Se prueba fácil**: podemos testear las reglas usando el repositorio en memoria, **sin necesidad de una base de datos**.
-- ✅ **Se cambia sin miedo**: pasar de memoria a PostgreSQL **no obliga a tocar las reglas de negocio** (solo cambiamos la implementación del repositorio).
+- ✅ **Se cambia sin miedo**: pasar de memoria a MySQL **no obliga a tocar las reglas de negocio** (solo cambiamos la implementación del repositorio).
 - ✅ **Crece ordenado**: para añadir una función nueva, se sabe exactamente dónde va cada cosa.
 
 ---
@@ -163,7 +163,7 @@ Fíjate: cada capa hace **solo su parte** y le pasa el trabajo a la siguiente.
 |-------------------|----------------|
 | `app.ts` | Crea la aplicación Express y **monta** los routers de cada módulo (`/bookings`, `/news`, `/events`). |
 | `server.ts` | Pone la aplicación **a escuchar** en un puerto (el arranque). |
-| `db/prisma.ts` | La **conexión** a la base de datos, compartida por los repositorios Postgres. |
+| `db/prisma.ts` | La **conexión** a la base de datos, compartida por los repositorios Prisma. |
 | `generated/prisma/` | Código que **Prisma genera solo** a partir del esquema. No se edita a mano. |
 | `types/` | Tipos generales que **no son del negocio** (por ejemplo, de una librería). |
 | `test/` | Las **pruebas automáticas** que comprueban que todo funciona. |

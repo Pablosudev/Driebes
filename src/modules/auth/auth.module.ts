@@ -2,7 +2,7 @@ import type { Router } from 'express';
 import type { UserInterface } from './domain/user.interface';
 import type { UserRepository } from './infrastructure/persistence/user.repository';
 import { InMemoryUserRepository } from './infrastructure/persistence/user.repository';
-import { PostgresUserRepository } from './infrastructure/persistence/postgres-user.repository';
+import { PrismaUserRepository } from './infrastructure/persistence/prisma-user.repository';
 import { getPrisma } from '../../db/prisma';
 import { BcryptPasswordHasher } from './infrastructure/security/password.hasher';
 import { JwtTokenService } from './infrastructure/security/token.service';
@@ -21,13 +21,13 @@ const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'admin1234';
 const SEED_ADMIN_NAME = process.env.SEED_ADMIN_NAME ?? 'Administrador';
 
 // Selecciona la implementación de persistencia. Por defecto, en memoria (los
-// tests no tocan ninguna base de datos). Con PERSISTENCE=postgres usa Prisma.
+// tests no tocan ninguna base de datos). Con PERSISTENCE=prisma usa la base de datos.
 function createUserRepository(hasher: BcryptPasswordHasher): UserRepository {
-  if (process.env.PERSISTENCE === 'postgres') {
-    return new PostgresUserRepository(getPrisma());
+  if (process.env.PERSISTENCE === 'prisma') {
+    return new PrismaUserRepository(getPrisma());
   }
 
-  // El admin semilla solo se crea en memoria (desarrollo/tests). En Postgres los
+  // El admin semilla solo se crea en memoria (desarrollo/tests). En MySQL los
   // usuarios se crean mediante semilla/migración, fuera del alcance de aquí.
   const seedAdmin: UserInterface = {
     id: 1,

@@ -177,11 +177,3 @@ Todos requieren autenticación (ver sección 1).
 
 ---
 
-## Consideraciones generales
-
-- **Autenticación**: JWT vía cabecera `Authorization: Bearer <token>`. Todos los endpoints requieren token salvo `POST /auth/login` y `GET /health`. Variables de entorno necesarias: `JWT_SECRET` y `JWT_EXPIRES_IN` (añadir a `.env` y `.env.example`).
-- **Contraseñas**: se almacenan siempre con hash (bcrypt/argon2), nunca en texto plano ni se devuelven en las respuestas.
-- **Subida de imágenes**: noticias y eventos aceptan `multipart/form-data`. Las imágenes se almacenan en disco local (carpeta `/uploads`) y se devuelve la URL de acceso.
-- **Formato de respuesta**: JSON en todos los endpoints.
-- **Errores**: respuestas estándar con código HTTP y mensaje descriptivo (`400`, `401`, `403`, `404`, `409`, `500`).
-- **Base de datos**: PostgreSQL gestionada con Prisma (esquema y migraciones). Las nuevas tablas `users` y `jobs` se añaden vía migración de Prisma.

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import formidable from 'formidable';
+import { createUploadForm, rutaPublica } from '../../../../utils/uploads';
 import { CreateNewsUseCase } from '../../domain/create-news.use-case';
 import { ListNewsUseCase } from '../../domain/list-news.use-case';
 import { GetNewsByIdUseCase } from '../../domain/get-news-by-id.use-case';
@@ -57,7 +57,7 @@ export function NewsRouter({
   });
 
   router.post('/', (req, res) => {
-    const form = formidable({ multiples: false });
+    const form = createUploadForm('news');
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -65,11 +65,9 @@ export function NewsRouter({
         return;
       }
 
-      // La imagen es opcional; si se ha subido, guardamos una ruta de referencia.
+      // La imagen es opcional; si se ha subido, ya está guardada en uploads/news.
       const fileImage = Array.isArray(files.image) ? files.image[0] : files.image;
-      const image = fileImage
-        ? `/uploads/news/${fileImage.originalFilename ?? fileImage.newFilename}`
-        : null;
+      const image = rutaPublica('news', fileImage);
 
       try {
         const news = await createNew.execute({
@@ -94,7 +92,7 @@ export function NewsRouter({
 
   router.put('/:id', (req, res) => {
     const id = Number(req.params.id);
-    const form = formidable({ multiples: false });
+    const form = createUploadForm('news');
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -103,9 +101,7 @@ export function NewsRouter({
       }
 
       const fileImage = Array.isArray(files.image) ? files.image[0] : files.image;
-      const image = fileImage
-        ? `/uploads/news/${fileImage.originalFilename ?? fileImage.newFilename}`
-        : null;
+      const image = rutaPublica('news', fileImage);
 
       try {
         const news = await updateNews.execute(id, {

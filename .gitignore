@@ -21,3 +21,6 @@ npm-debug.log*
 Thumbs.db
 
 /src/generated/prisma
+
+# Ficheros subidos
+uploads/

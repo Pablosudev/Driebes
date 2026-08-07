@@ -14,13 +14,14 @@ function toUser(row: User): UserInterface {
   };
 }
 
-export class PostgresUserRepository implements UserRepository {
+export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findByEmail(email: string): Promise<UserInterface | null> {
-    // Búsqueda case-insensitive, igual que la implementación en memoria.
+    // Case-insensitive, igual que la implementación en memoria: en MySQL lo
+    // aporta la collation de la columna (utf8mb4_unicode_ci, que aplica Prisma).
     const row = await this.prisma.user.findFirst({
-      where: { email: { equals: email.trim(), mode: 'insensitive' } },
+      where: { email: { equals: email.trim() } },
     });
     return row ? toUser(row) : null;
   }

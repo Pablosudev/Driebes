@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 // ─────────────────────────────────────────
@@ -30,7 +30,7 @@ model Booking {
   startDate  DateTime     @map("start_date")
   endDate    DateTime     @map("end_date")
   state      BookingState @default(pending)
-  notes      String?
+  notes      String?      @db.Text
   createDate DateTime     @default(now()) @map("create_date")
 
   @@index([startDate, endDate])
@@ -44,8 +44,8 @@ model Booking {
 model News {
   id          Int      @id @default(autoincrement())
   title       String
-  description String
-  image       String?
+  description String   @db.Text
+  image       String?  @db.VarChar(500)
   uploadDate  DateTime @default(now()) @map("upload_date")
 
   @@map("news")
@@ -65,8 +65,8 @@ enum Category {
 model Event {
   id           Int      @id @default(autoincrement())
   title        String
-  description  String
-  image        String?
+  description  String   @db.Text
+  image        String?  @db.VarChar(500)
   creationDate DateTime @default(now()) @map("creation_date")
   eventDate    DateTime @map("event_date")
   category     Category
@@ -95,8 +95,8 @@ model User {
 model Job {
   id           Int      @id @default(autoincrement())
   title        String
-  description  String
-  requirements String
+  description  String   @db.Text
+  requirements String   @db.Text
   companyName  String   @map("company_name")
   phone        String?
   email        String?

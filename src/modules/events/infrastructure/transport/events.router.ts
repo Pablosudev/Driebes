@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import formidable from 'formidable';
+import { createUploadForm, rutaPublica } from '../../../../utils/uploads';
 import { CreateEventUseCase } from '../../domain/create-event.use-case';
 import { ListEventsUseCase } from '../../domain/list-events.use-case';
 import { GetEventByIdUseCase } from '../../domain/get-event-by-id.use-case';
@@ -54,7 +54,7 @@ export function EventsRouter({
   });
 
   router.post('/', (req, res) => {
-    const form = formidable({ multiples: false });
+    const form = createUploadForm('events');
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -63,9 +63,7 @@ export function EventsRouter({
       }
 
       const fileImage = Array.isArray(files.image) ? files.image[0] : files.image;
-      const image = fileImage
-        ? `/uploads/events/${fileImage.originalFilename ?? fileImage.newFilename}`
-        : null;
+      const image = rutaPublica('events', fileImage);
 
       try {
         const event = await createEvent.execute({
@@ -89,7 +87,7 @@ export function EventsRouter({
 
   router.put('/:id', (req, res) => {
     const id = Number(req.params.id);
-    const form = formidable({ multiples: false });
+    const form = createUploadForm('events');
 
     form.parse(req, async (err, fields, files) => {
       if (err) {
@@ -98,9 +96,7 @@ export function EventsRouter({
       }
 
       const fileImage = Array.isArray(files.image) ? files.image[0] : files.image;
-      const image = fileImage
-        ? `/uploads/events/${fileImage.originalFilename ?? fileImage.newFilename}`
-        : null;
+      const image = rutaPublica('events', fileImage);
 
       try {
         const event = await updateEvent.execute(id, {

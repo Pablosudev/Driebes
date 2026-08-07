@@ -16,7 +16,7 @@ function toEvent(row: Event): EventInterface {
   };
 }
 
-export class PostgresEventRepository implements EventRepository {
+export class PrismaEventRepository implements EventRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async save(data: Omit<EventInterface, 'id'>): Promise<EventInterface> {

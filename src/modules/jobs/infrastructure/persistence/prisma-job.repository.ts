@@ -17,7 +17,7 @@ function toJob(row: Job): JobInterface {
   };
 }
 
-export class PostgresJobRepository implements JobRepository {
+export class PrismaJobRepository implements JobRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async save(data: Omit<JobInterface, 'id'>): Promise<JobInterface> {

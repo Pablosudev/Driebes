@@ -1,7 +1,7 @@
 import type { Router } from 'express';
 import type { JobRepository } from './infrastructure/persistence/job.repository';
 import { InMemoryJobRepository } from './infrastructure/persistence/job.repository';
-import { PostgresJobRepository } from './infrastructure/persistence/postgres-job.repository';
+import { PrismaJobRepository } from './infrastructure/persistence/prisma-job.repository';
 import { getPrisma } from '../../db/prisma';
 import { CreateJobUseCase } from './domain/create-job.use-case';
 import { ListJobsUseCase } from './domain/list-jobs.use-case';
@@ -11,10 +11,10 @@ import { DeleteJobUseCase } from './domain/delete-job.use-case';
 import { JobsRouter } from './infrastructure/transport/jobs.router';
 
 // Selecciona la implementación de persistencia. Por defecto, en memoria (los
-// tests no tocan ninguna base de datos). Con PERSISTENCE=postgres usa Prisma.
+// tests no tocan ninguna base de datos). Con PERSISTENCE=prisma usa la base de datos.
 function createJobRepository(): JobRepository {
-  if (process.env.PERSISTENCE === 'postgres') {
-    return new PostgresJobRepository(getPrisma());
+  if (process.env.PERSISTENCE === 'prisma') {
+    return new PrismaJobRepository(getPrisma());
   }
   return new InMemoryJobRepository();
 }

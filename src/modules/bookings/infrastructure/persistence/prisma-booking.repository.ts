@@ -2,8 +2,7 @@ import type { PrismaClient, Booking } from '../../../../generated/prisma/client'
 import type { BookingInterface, BookingState } from '../../domain/booking.interface';
 import type { BookingRepository } from './booking.repository';
 
-// Traduce una fila de Prisma (fechas como Date, enum de Prisma) a la entidad de
-// dominio (fechas como cadenas ISO 8601), que es el contrato de BookingInterface.
+
 function toBooking(row: Booking): BookingInterface {
   return {
     id: row.id,
@@ -17,7 +16,7 @@ function toBooking(row: Booking): BookingInterface {
   };
 }
 
-export class PostgresBookingRepository implements BookingRepository {
+export class PrismaBookingRepository implements BookingRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async save(data: Omit<BookingInterface, 'id'>): Promise<BookingInterface> {
