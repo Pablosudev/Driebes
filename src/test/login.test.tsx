@@ -5,6 +5,10 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import type { ReactNode } from "react";
 import { authReducer } from "../modules/login/Features/authSlice";
+import { eventReducer } from "../modules/events/Features/eventsSlice";
+import { jobReducer } from "../modules/jobs/Features/jobsSlice";
+import { bookingReducer } from "../modules/bookings/Features/bookingsSlice";
+import { newsReducer } from "../modules/news/Features/newsSlice";
 import { Login } from "../modules/login/Pages/Login";
 import App from "../App";
 import type { AuthResponse, AuthUser } from "../modules/login/Interfaces/authInterface";
@@ -25,7 +29,18 @@ const authUser: AuthUser = {
 
 const authResponse: AuthResponse = { token: "token-nuevo", user: authUser };
 
-const makeStore = () => configureStore({ reducer: { auth: authReducer } });
+// Los tests de <App /> llegan hasta el Home, que lee de los slices de recursos
+// para sus tarjetas y sus recordatorios: el store de prueba los necesita.
+const makeStore = () =>
+  configureStore({
+    reducer: {
+      auth: authReducer,
+      eventsSlice: eventReducer,
+      jobsSlice: jobReducer,
+      bookingsSlice: bookingReducer,
+      newsSlice: newsReducer,
+    },
+  });
 
 /** Renderiza dentro de un Provider y devuelve tambien el store, para poder
  *  comprobar el estado resultante ademas de lo que se ve en pantalla. */
@@ -396,6 +411,14 @@ describe("Login - errores", () => {
 // La puerta de sesion de App
 // ---------------------------------------------------------------------------
 
+/** El Home pide estos listados nada mas entrar: se responde por ruta. */
+const LISTADOS = ["/events", "/jobs", "/bookings"];
+
+const routedFetch = async (url: string) =>
+  LISTADOS.some((ruta) => url.endsWith(ruta))
+    ? okResponse([])
+    : okResponse(authResponse);
+
 describe("App - puerta de sesion", () => {
   it("muestra el login cuando no hay token", () => {
     renderWithStore(<App />);
@@ -405,7 +428,7 @@ describe("App - puerta de sesion", () => {
 
   it("pasa al dashboard tras un login correcto", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue(okResponse(authResponse));
+    fetchMock.mockImplementation((url: string) => routedFetch(url));
     renderWithStore(<App />);
 
     await user.type(emailInput(), "plopez@aries.es");
@@ -418,7 +441,7 @@ describe("App - puerta de sesion", () => {
 
   it("vuelve al login al cerrar sesion", async () => {
     const user = userEvent.setup();
-    fetchMock.mockResolvedValue(okResponse(authResponse));
+    fetchMock.mockImplementation((url: string) => routedFetch(url));
     renderWithStore(<App />);
 
     await user.type(emailInput(), "plopez@aries.es");

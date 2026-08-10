@@ -52,17 +52,18 @@ export const createBookingThunk = createAsyncThunk<
   { rejectValue: string }
 >("/bookings/create", async (newBooking: BookingInput, thunkAPI) => {
   try {
-    const formData = new FormData();
-    (formData.append("name", newBooking.name),
-      formData.append("phone", newBooking.phone),
-      formData.append("startDate", newBooking.startDate),
-      formData.append("endDate", newBooking.endDate),
-      formData.append("status", newBooking.status),
-      formData.append("note", newBooking.note));
-
+    // POST /bookings espera JSON: no hay ficheros, y la API solo monta
+    // express.json() en esta ruta (con FormData el body llega vacio y revienta).
     const response = await apiFetch(`/bookings`, {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: newBooking.name,
+        phone: newBooking.phone,
+        startDate: newBooking.startDate,
+        endDate: newBooking.endDate,
+        notes: newBooking.notes,
+      }),
     });
     if (!response.ok) {
       const errorCreateBooking = await response.json();
@@ -85,17 +86,17 @@ export const updateBookingThunk = createAsyncThunk<
   "/bookings/update",
   async ({ id, booking }: { id: number; booking: BookingInput }, thunkApi) => {
     try {
-      const formData = new FormData();
-      formData.append("name", booking.name),
-        formData.append("phone", booking.phone),
-        formData.append("startDate", booking.startDate),
-        formData.append("endDate", booking.endDate),
-        formData.append("status", booking.status),
-        formData.append("note", booking.note);
-
         const response = await apiFetch(`/bookings/${id}` , {
             method: "PUT",
-            body : formData,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: booking.name,
+              phone: booking.phone,
+              startDate: booking.startDate,
+              endDate: booking.endDate,
+              state: booking.state,
+              notes: booking.notes,
+            }),
         });
         if (!response.ok) {
             const errorUpdateBooking = await response.json();

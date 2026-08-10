@@ -8,17 +8,16 @@ import {
 import type {
   AllBookings,
   BookingInterface,
+  BookingState,
 } from "../../modules/bookings/Interfaces/bookingsInterface";
 
-/* Estados asignables desde el panel (enum BookingState de la API). */
+// 'free' no se ofrece: es un estado calculado (dia sin reserva), la API no lo persiste.
 const STATES = [
-  { value: "free", label: "Libre" },
   { value: "pending", label: "Pendiente" },
   { value: "reserved", label: "Reservada" },
 ];
 
-/* <input type="datetime-local"> necesita "YYYY-MM-DDTHH:mm"; la API devuelve
-   ISO completo, asi que se recorta. */
+
 function toInputValue(isoDate: string) {
   return isoDate.slice(0, 16);
 }
@@ -48,8 +47,7 @@ export default function BookingModal({
     (state) => state.bookingsSlice.createBookingsError,
   );
 
-  /* Con una sola reserva se edita directamente; con varias hay que elegir.
-     Si el dia esta libre se entra ya en modo creacion. */
+  
   const [selected, setSelected] = useState<BookingInterface | null>(
     bookings.length === 1 ? bookings[0] : null,
   );
@@ -60,8 +58,8 @@ export default function BookingModal({
     phone: "",
     startDate: `${date}T09:00`,
     endDate: `${date}T10:00`,
-    status: "pending",
-    note: "",
+    state: "pending",
+    notes: "",
   });
 
   useEffect(() => {
@@ -71,12 +69,11 @@ export default function BookingModal({
       phone: selected.phone,
       startDate: toInputValue(selected.startDate),
       endDate: toInputValue(selected.endDate),
-      status: selected.status,
-      note: selected.note ?? "",
+      state: selected.state,
+      notes: selected.notes ?? "",
     });
   }, [selected]);
 
-  /* Formulario en blanco sobre el dia pulsado. */
   function startCreate() {
     setSelected(null);
     setIsCreating(true);
@@ -85,8 +82,8 @@ export default function BookingModal({
       phone: "",
       startDate: `${date}T09:00`,
       endDate: `${date}T10:00`,
-      status: "pending",
-      note: "",
+      state: "pending",
+      notes: "",
     });
   }
 
@@ -114,13 +111,11 @@ export default function BookingModal({
       phone: form.phone,
       startDate: new Date(form.startDate).toISOString(),
       endDate: new Date(form.endDate).toISOString(),
-      status: form.status,
-      note: form.note,
+      state: form.state as BookingState,
+      notes: form.notes,
     };
 
-    /* Se mira el resultado de este dispatch en vez del status del slice: ese
-       status conserva el valor de la peticion anterior y cerraria el modal
-       antes de tiempo. */
+  
     if (isCreating) {
       const result = await dispatch(createBookingThunk(booking));
       if (createBookingThunk.fulfilled.match(result)) onClose();
@@ -266,9 +261,9 @@ export default function BookingModal({
                 Estado
               </span>
               <select
-                value={form.status}
+                value={form.state}
                 onChange={(event) =>
-                  setForm({ ...form, status: event.target.value })
+                  setForm({ ...form, state: event.target.value })
                 }
                 className="rounded-lg border border-tertiary-300 px-3 py-2 font-body text-body focus:border-primary focus:outline-none"
               >
@@ -286,9 +281,9 @@ export default function BookingModal({
               </span>
               <textarea
                 rows={3}
-                value={form.note}
+                value={form.notes}
                 onChange={(event) =>
-                  setForm({ ...form, note: event.target.value })
+                  setForm({ ...form, notes: event.target.value })
                 }
                 className="resize-none rounded-lg border border-tertiary-300 px-3 py-2 font-body text-body focus:border-primary focus:outline-none"
               />

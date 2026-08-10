@@ -1,13 +1,16 @@
 import type { RequestStatus } from "../../../shared/types";
 
+// Los nombres de los campos son los que expone la API (state / notes).
+export type BookingState = "free" | "pending" | "reserved";
+
 export interface BookingInterface {
     id : number,
     name: string,
     phone: string,
     startDate: string,
     endDate: string,
-    status: string,
-    note: string,
+    state: BookingState,
+    notes: string | null,
     createDate: string,
 }
 export type AllBookings = BookingInterface[]

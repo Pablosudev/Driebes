@@ -39,7 +39,7 @@ export default function BookingCalendar({ bookings }: BookingCalendarProps) {
   /* FullCalendar trata `end` como exclusivo: una reserva que termina el dia 10
      debe declararse hasta el 11 para que el dia 10 quede pintado. */
   const events: EventInput[] = bookings.map((booking) => {
-    const style = STATE_STYLES[booking.status] ?? STATE_STYLES.free;
+    const style = STATE_STYLES[booking.state] ?? STATE_STYLES.free;
 
     return {
       id: String(booking.id),

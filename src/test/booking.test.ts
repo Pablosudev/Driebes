@@ -29,8 +29,8 @@ const bookingFixture: BookingInterface = {
   phone: "600123456",
   startDate: "2026-09-01",
   endDate: "2026-09-05",
-  status: "pending",
-  note: "Reserva del salón de actos",
+  state: "pending",
+  notes: "Reserva del salón de actos",
   createDate: "2026-08-03",
 };
 
@@ -40,8 +40,8 @@ const otherBookingFixture: BookingInterface = {
   phone: "611987654",
   startDate: "2026-10-10",
   endDate: "2026-10-12",
-  status: "confirmed",
-  note: "Reserva del polideportivo",
+  state: "reserved",
+  notes: "Reserva del polideportivo",
   createDate: "2026-08-03",
 };
 
@@ -50,8 +50,8 @@ const bookingInput: BookingInput = {
   phone: "600123456",
   startDate: "2026-09-01",
   endDate: "2026-09-05",
-  status: "pending",
-  note: "Reserva del salón de actos",
+  state: "pending",
+  notes: "Reserva del salón de actos",
 };
 
 /** Store aislado con solo el slice de bookings, uno nuevo por test. */
@@ -75,8 +75,9 @@ let fetchMock: ReturnType<typeof vi.fn>;
 const fetchInit = (call = 0): RequestInit =>
   fetchMock.mock.calls[call][1] as RequestInit;
 
-/** Devuelve el FormData enviado en la n-ésima llamada a fetch. */
-const sentFormData = (call = 0): FormData => fetchInit(call).body as FormData;
+/** Devuelve el cuerpo JSON enviado en la n-ésima llamada a fetch. */
+const sentJson = (call = 0): Record<string, unknown> =>
+  JSON.parse(fetchInit(call).body as string);
 
 /** Lee una cabecera enviada en la n-ésima llamada a fetch. */
 const sentHeader = (name: string, call = 0): string | null =>
@@ -323,19 +324,21 @@ describe("createBookingThunk", () => {
     expect(fetchInit().method).toBe("POST");
   });
 
-  it("envia los seis campos del formulario como FormData", async () => {
+  // La API solo monta express.json() en /bookings: con FormData el body llega
+  // vacio al servidor y la creacion responde un 500.
+  it("envia el formulario como JSON con los nombres de campo de la API", async () => {
     fetchMock.mockResolvedValue(okResponse(bookingFixture));
 
     await makeStore().dispatch(createBookingThunk(bookingInput));
-    const formData = sentFormData();
 
-    expect(formData).toBeInstanceOf(FormData);
-    expect(formData.get("name")).toBe(bookingInput.name);
-    expect(formData.get("phone")).toBe(bookingInput.phone);
-    expect(formData.get("startDate")).toBe(bookingInput.startDate);
-    expect(formData.get("endDate")).toBe(bookingInput.endDate);
-    expect(formData.get("status")).toBe(bookingInput.status);
-    expect(formData.get("note")).toBe(bookingInput.note);
+    expect(sentHeader("Content-Type")).toBe("application/json");
+    expect(sentJson()).toEqual({
+      name: bookingInput.name,
+      phone: bookingInput.phone,
+      startDate: bookingInput.startDate,
+      endDate: bookingInput.endDate,
+      notes: bookingInput.notes,
+    });
   });
 
   it("pasa a pending mientras la peticion esta en vuelo", () => {
@@ -435,21 +438,22 @@ describe("updateBookingThunk", () => {
     expect(fetchInit().method).toBe("PUT");
   });
 
-  it("envia los seis campos del formulario como FormData", async () => {
+  it("envia el formulario como JSON con los nombres de campo de la API", async () => {
     fetchMock.mockResolvedValue(okResponse(bookingFixture));
 
     await makeStore().dispatch(
       updateBookingThunk({ id: 1, booking: bookingInput }),
     );
-    const formData = sentFormData();
 
-    expect(formData).toBeInstanceOf(FormData);
-    expect(formData.get("name")).toBe(bookingInput.name);
-    expect(formData.get("phone")).toBe(bookingInput.phone);
-    expect(formData.get("startDate")).toBe(bookingInput.startDate);
-    expect(formData.get("endDate")).toBe(bookingInput.endDate);
-    expect(formData.get("status")).toBe(bookingInput.status);
-    expect(formData.get("note")).toBe(bookingInput.note);
+    expect(sentHeader("Content-Type")).toBe("application/json");
+    expect(sentJson()).toEqual({
+      name: bookingInput.name,
+      phone: bookingInput.phone,
+      startDate: bookingInput.startDate,
+      endDate: bookingInput.endDate,
+      state: bookingInput.state,
+      notes: bookingInput.notes,
+    });
   });
 
   it("pasa a pending mientras la peticion esta en vuelo", () => {
@@ -468,8 +472,8 @@ describe("updateBookingThunk", () => {
     };
     const edited: BookingInterface = {
       ...bookingFixture,
-      status: "confirmed",
-      note: "Confirmada por telefono",
+      state: "reserved",
+      notes: "Confirmada por telefono",
     };
 
     const state = bookingReducer(

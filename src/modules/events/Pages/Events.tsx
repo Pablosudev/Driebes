@@ -80,17 +80,6 @@ export default function Events() {
         )}
 
         <div className="flex flex-wrap gap-4">
-          {/* Tarjeta falseada: se mantiene mientras seguimos maquetando. */}
-          <PublicationCard
-            image={null}
-            status="PUBLICADO"
-            date="15 Oct, 2023"
-            title="Maratón Anual de la Ciudad 2023"
-            description="Evento deportivo principal recorriendo las avenidas históricas del centro de la ciudad."
-            location="Plaza Mayor"
-            onClick={() => navigate(`/eventos/${1}`)}
-          />
-
           {events.map((event) => (
             <PublicationCard
               key={event.id}

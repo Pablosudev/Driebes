@@ -1,6 +1,5 @@
 import {
   IoCalendarClearOutline,
-  IoEllipsisHorizontal,
   IoImageOutline,
   IoLocationOutline,
 } from "react-icons/io5";
