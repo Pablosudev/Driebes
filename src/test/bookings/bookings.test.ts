@@ -98,6 +98,15 @@ describe('Bookings', () => {
       expect(res.body).toHaveProperty('notes'); // string | null
     });
 
+    // Express 5 deja req.body en undefined si ningún parser reconoce el
+    // Content-Type (p. ej. si el front manda un FormData): eso debe seguir
+    // siendo un 400 de validación, no un 500.
+    it('devuelve 400 si el cuerpo no es JSON parseable', async () => {
+      const res = await api.post('/bookings').field('name', 'Juan García');
+
+      expect(res.status).toBe(400);
+    });
+
     it('devuelve 400 si falta el name', async () => {
       const res = await api.post('/bookings').send({
         phone: '612345678',
@@ -294,6 +303,130 @@ describe('Bookings', () => {
 
     it('devuelve 404 si la reserva no existe', async () => {
       const res = await api.get('/bookings/999999');
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('PUT /bookings/:id', () => {
+    it('actualiza todos los campos editables y devuelve 200', async () => {
+      const creada = await crearReserva();
+      const { startDate, endDate } = nextUniqueDates();
+
+      const res = await api.put(`/bookings/${creada.body.id}`).send({
+        name: 'Nombre editado',
+        phone: '699999999',
+        startDate,
+        endDate,
+        state: 'reserved',
+        notes: 'Notas editadas',
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        id: creada.body.id,
+        name: 'Nombre editado',
+        phone: '699999999',
+        state: 'reserved',
+        notes: 'Notas editadas',
+      });
+    });
+
+    it('persiste el cambio (un GET posterior devuelve los datos nuevos)', async () => {
+      const creada = await crearReserva();
+      const { startDate, endDate } = nextUniqueDates();
+
+      await api.put(`/bookings/${creada.body.id}`).send({
+        name: 'Persistido',
+        phone: '611111111',
+        startDate,
+        endDate,
+        notes: null,
+      });
+
+      const res = await api.get(`/bookings/${creada.body.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.name).toBe('Persistido');
+      expect(res.body.notes).toBeNull();
+    });
+
+    it('mantiene el estado actual si no se envía state', async () => {
+      const creada = await crearReserva();
+      const { startDate, endDate } = nextUniqueDates();
+
+      const res = await api.put(`/bookings/${creada.body.id}`).send({
+        name: 'Sin estado',
+        phone: '622222222',
+        startDate,
+        endDate,
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.state).toBe('pending');
+    });
+
+    it('no considera conflicto el propio rango de la reserva editada', async () => {
+      const creada = await crearReserva();
+
+      const res = await api.put(`/bookings/${creada.body.id}`).send({
+        name: 'Mismo rango',
+        phone: '633333333',
+        startDate: creada.body.startDate,
+        endDate: creada.body.endDate,
+      });
+
+      expect(res.status).toBe(200);
+    });
+
+    it('devuelve 409 si el nuevo rango pisa otra reserva activa', async () => {
+      const primera = await crearReserva();
+      const segunda = await crearReserva();
+
+      const res = await api.put(`/bookings/${segunda.body.id}`).send({
+        name: 'Solapada',
+        phone: '644444444',
+        startDate: primera.body.startDate,
+        endDate: primera.body.endDate,
+      });
+
+      expect(res.status).toBe(409);
+    });
+
+    it('devuelve 400 si falta un campo obligatorio', async () => {
+      const creada = await crearReserva();
+
+      const res = await api
+        .put(`/bookings/${creada.body.id}`)
+        .send({ phone: '655555555' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('devuelve 400 si el estado no es persistible ("free")', async () => {
+      const creada = await crearReserva();
+      const { startDate, endDate } = nextUniqueDates();
+
+      const res = await api.put(`/bookings/${creada.body.id}`).send({
+        name: 'Estado invalido',
+        phone: '666666666',
+        startDate,
+        endDate,
+        state: 'free',
+      });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('devuelve 404 si la reserva no existe', async () => {
+      const { startDate, endDate } = nextUniqueDates();
+
+      const res = await api.put('/bookings/999999').send({
+        name: 'Inexistente',
+        phone: '677777777',
+        startDate,
+        endDate,
+      });
 
       expect(res.status).toBe(404);
     });
