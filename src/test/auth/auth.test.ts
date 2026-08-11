@@ -23,12 +23,8 @@ const app = createApp();
  *  - POST /auth/logout → requiere token. Cierra la sesión del cliente
  *  - GET  /auth/me     → requiere token. Devuelve el usuario autenticado
  *
- * Regla de acceso: TODOS los endpoints requieren token JWT válido salvo
- * `POST /auth/login` y `GET /health`.
- *
- * NOTA (TDD): estos tests describen comportamiento aún NO implementado, por lo
- * que fallarán hasta que exista el módulo de auth. Asumen que la implementación
- * crea (por semilla) un usuario administrador con las credenciales de abajo.
+ * Regla de acceso: los endpoints requieren token JWT válido salvo
+ * `POST /auth/login`, `GET /health` y las lecturas `GET /events`.
  */
 
 // Credenciales del administrador semilla que la implementación debe crear para
@@ -196,8 +192,26 @@ describe('Autenticación', () => {
       expect(res.status).toBe(401);
     });
 
-    it('GET /events devuelve 401 sin token', async () => {
+    it('GET /events es público: responde 200 sin token', async () => {
       const res = await request(app).get('/events');
+
+      expect(res.status).toBe(200);
+    });
+
+    it('POST /events permanece protegido: devuelve 401 sin token', async () => {
+      const res = await request(app).post('/events');
+
+      expect(res.status).toBe(401);
+    });
+
+    it('PUT /events/:id permanece protegido: devuelve 401 sin token', async () => {
+      const res = await request(app).put('/events/1');
+
+      expect(res.status).toBe(401);
+    });
+
+    it('DELETE /events/:id permanece protegido: devuelve 401 sin token', async () => {
+      const res = await request(app).delete('/events/1');
 
       expect(res.status).toBe(401);
     });

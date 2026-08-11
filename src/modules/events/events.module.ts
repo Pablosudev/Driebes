@@ -1,4 +1,4 @@
-import type { Router } from 'express';
+import type { RequestHandler, Router } from 'express';
 import type { EventRepository } from './infrastructure/persistence/event.repository';
 import { InMemoryEventRepository } from './infrastructure/persistence/event.repository';
 import { PrismaEventRepository } from './infrastructure/persistence/prisma-event.repository';
@@ -19,10 +19,11 @@ function createEventRepository(): EventRepository {
   return new InMemoryEventRepository();
 }
 
-export function buildEventsRouter(): Router {
+export function buildEventsRouter(requireAuth: RequestHandler): Router {
   const repository = createEventRepository();
 
   return EventsRouter({
+    requireAuth,
     createEvent: new CreateEventUseCase(repository),
     listEvents: new ListEventsUseCase(repository),
     getEventById: new GetEventByIdUseCase(repository),

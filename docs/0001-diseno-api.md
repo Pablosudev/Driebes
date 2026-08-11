@@ -4,7 +4,7 @@
 
 API REST para la gestión de servicios municipales: noticias del pueblo, eventos, reservas de un local municipal y ofertas de trabajo.
 
-Toda la API está protegida con autenticación (ver sección 1). El acceso lo usan los administradores del ayuntamiento.
+Las operaciones de gestión están protegidas con autenticación (ver sección 1). Las lecturas de eventos son públicas para que pueda consumirlas la web municipal.
 
 ---
 
@@ -18,6 +18,7 @@ Todos los endpoints requieren un token JWT válido, **salvo estas excepciones p�
 
 - `POST /auth/login` — necesario para obtener el token.
 - `GET /health` — comprobación de estado del servicio.
+- `GET /events` y `GET /events/:id` — consulta pública de eventos.
 
 ### Modelo (Usuario administrador)
 
@@ -96,13 +97,13 @@ Todos requieren autenticación (ver sección 1).
 
 ### Endpoints
 
-Todos requieren autenticación (ver sección 1).
+Las lecturas (`GET`) son públicas. Crear, actualizar y eliminar eventos requiere autenticación (ver sección 1).
 
 | Método | Ruta                         | Descripción                                       |
 |--------|------------------------------|---------------------------------------------------|
-| GET    | /events                      | Listar todos los eventos                          |
-| GET    | /events/:id                  | Obtener un evento por ID                          |
-| GET    | /events?category=deportivo   | Filtrar eventos por categoría                     |
+| GET    | /events                      | **Público.** Listar todos los eventos             |
+| GET    | /events/:id                  | **Público.** Obtener un evento por ID             |
+| GET    | /events?category=Deportivo   | **Público.** Filtrar eventos por categoría        |
 | POST   | /events                      | Crear un evento (multipart/form-data para imagen) |
 | PUT    | /events/:id                  | Actualizar un evento                              |
 | DELETE | /events/:id                  | Eliminar un evento                                |
@@ -176,4 +177,3 @@ Todos requieren autenticación (ver sección 1).
 | DELETE | /jobs/:id   | Eliminar una oferta               |
 
 ---
-

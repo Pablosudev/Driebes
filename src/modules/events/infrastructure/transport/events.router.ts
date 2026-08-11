@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type RequestHandler } from 'express';
 import { createUploadForm, rutaPublica } from '../../../../utils/uploads';
 import { CreateEventUseCase } from '../../domain/create-event.use-case';
 import { ListEventsUseCase } from '../../domain/list-events.use-case';
@@ -12,6 +12,7 @@ const primerValor = (campo: string | string[] | undefined): string | undefined =
   Array.isArray(campo) ? campo[0] : campo;
 
 interface EventsRouterDeps {
+  requireAuth: RequestHandler;
   createEvent: CreateEventUseCase;
   listEvents: ListEventsUseCase;
   getEventById: GetEventByIdUseCase;
@@ -20,6 +21,7 @@ interface EventsRouterDeps {
 }
 
 export function EventsRouter({
+  requireAuth,
   createEvent,
   listEvents,
   getEventById,
@@ -53,7 +55,7 @@ export function EventsRouter({
     }
   });
 
-  router.post('/', (req, res) => {
+  router.post('/', requireAuth, (req, res) => {
     const form = createUploadForm('events');
 
     form.parse(req, async (err, fields, files) => {
@@ -85,7 +87,7 @@ export function EventsRouter({
     });
   });
 
-  router.put('/:id', (req, res) => {
+  router.put('/:id', requireAuth, (req, res) => {
     const id = Number(req.params.id);
     const form = createUploadForm('events');
 
@@ -122,7 +124,7 @@ export function EventsRouter({
     });
   });
 
-  router.delete('/:id', async (req, res) => {
+  router.delete('/:id', requireAuth, async (req, res) => {
     const id = Number(req.params.id);
     try {
       await deleteEvent.execute(id);
