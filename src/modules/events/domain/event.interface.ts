@@ -1,4 +1,5 @@
-export type Category = 'sports' | 'festive' | 'religious' | 'other';
+// En español porque es el texto que se muestra: no hay capa de traduccion.
+export type Category = 'Deportivo' | 'Festivo' | 'Religioso' | 'Otro';
 
 export interface EventInterface {
   id: number;

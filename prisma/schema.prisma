@@ -55,11 +55,14 @@ model News {
 // EVENTS (Eventos del ayuntamiento)
 // ─────────────────────────────────────────
 
+// Los valores se guardan ya en español: es el texto que se muestra al usuario
+// y no hay intención de traducir la aplicación, así que no existe capa de
+// traducción en el código.
 enum Category {
-  sports
-  festive
-  religious
-  other
+  Deportivo
+  Festivo
+  Religioso
+  Otro
 }
 
 model Event {

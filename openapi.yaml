@@ -339,8 +339,8 @@ components:
 
     CategoriaEvento:
       type: string
-      enum: [deportivo, festivo, religioso, otro]
-      example: deportivo
+      enum: [Deportivo, Festivo, Religioso, Otro]
+      example: Deportivo
 
     EstadoReserva:
       type: string
