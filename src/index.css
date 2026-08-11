@@ -69,6 +69,22 @@
   --color-neutral-900: #1d1d1f;
   --color-neutral-950: #121214;
 
+  /* Danger --- #D92D20
+     Para lo que reclama atencion: errores y estados vencidos.
+     Ya se usaba en el mensaje de error del login sin estar definido. */
+  --color-danger: #d92d20;
+  --color-danger-50: #fef3f2;
+  --color-danger-100: #fee4e2;
+  --color-danger-200: #fecdca;
+  --color-danger-300: #fda29b;
+  --color-danger-400: #f97066;
+  --color-danger-500: #f04438;
+  --color-danger-600: #d92d20;
+  --color-danger-700: #b42318;
+  --color-danger-800: #912018;
+  --color-danger-900: #7a271a;
+  --color-danger-950: #55160c;
+
   /* --- Marca externa ----------------------------------------
      Verde de WhatsApp. No pertenece a la paleta del
      Ayuntamiento: se usa solo en el boton de compartir, donde

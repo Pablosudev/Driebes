@@ -1,15 +1,8 @@
-import type { AllEventsInterface, Category } from "../modules/events/Interfaces/EventsInterface";
+import type { AllEventsInterface } from "../modules/events/Interfaces/EventsInterface";
 import type { AllBookings } from "../modules/bookings/Interfaces/bookingsInterface";
 import { dayLabel, dayRange, toDay, toHour, todayKey } from "./dates";
 
 export const REMINDER_WINDOW_DAYS = 8;
-
-const CATEGORY_LABEL: Record<Category, string> = {
-  sports: "Deportivo",
-  festive: "Festivo",
-  religious: "Religioso",
-  other: "Otros",
-};
 
 export type ReminderKind = "event" | "booking";
 
@@ -37,7 +30,7 @@ const eventReminder = (event: AllEventsInterface[number]): Reminder => ({
   key: `event-${event.id}`,
   kind: "event",
   title: event.title,
-  detail: CATEGORY_LABEL[event.category] ?? "Evento",
+  detail: event.category ?? "Evento",
   hour: toHour(event.eventDate),
   pending: false,
 });

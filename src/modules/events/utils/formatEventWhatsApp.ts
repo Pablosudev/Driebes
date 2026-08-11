@@ -5,22 +5,16 @@ import {
   joinBlocks,
   publicLink,
 } from "../../../services/whatsapp/message";
-import type { Category, EventInterface } from "../Interfaces/EventsInterface";
-
-/** "other" no aparece: una etiqueta generica no le dice nada al vecino. */
-const CATEGORY_LABEL: Partial<Record<Category, string>> = {
-  sports: "Deportivo",
-  festive: "Festivo",
-  religious: "Religioso",
-};
+import type { EventInterface } from "../Interfaces/EventsInterface";
 
 /** Cuando y de que va, en un solo bloque para no airear el mensaje. */
 const whenBlock = (event: EventInterface): string => {
-  const category = CATEGORY_LABEL[event.category];
+  const category = clean(event.category);
 
   return [
     longDateLabel(clean(event.eventDate)),
-    category && `Categoría: ${category}`,
+    // "Otro" no aparece: una categoria generica no le dice nada al vecino.
+    category !== "Otro" && category && `Categoría: ${category}`,
   ]
     .filter(Boolean)
     .join("\n");

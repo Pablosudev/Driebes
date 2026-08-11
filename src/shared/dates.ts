@@ -25,6 +25,32 @@ export function dayRange(from: string, days: number): string[] {
 }
 
 /**
+ * Si el dia indicado quedo atras. El mismo dia cuenta como no pasado: un
+ * evento de hoy esta en curso, no terminado.
+ *
+ * Ante una fecha inutilizable devuelve false: es menos dañino no marcar un
+ * evento que dar por terminado uno que aun no ha ocurrido.
+ */
+export function hasPassed(isoDate: string, today: string = todayKey()): boolean {
+  if (!isoDate) return false;
+
+  const day = toDay(isoDate);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) && day < today;
+}
+
+/** "08/09/2026". Cadena vacia si la fecha no es utilizable. */
+export function shortDateLabel(isoDate: string): string {
+  if (!isoDate) return "";
+
+  const [year, month, day] = toDay(isoDate).split("-");
+  if (!year || !month || !day || Number.isNaN(Number(`${year}${month}${day}`))) {
+    return "";
+  }
+
+  return `${day}/${month}/${year}`;
+}
+
+/**
  * "22 de agosto de 2026". Devuelve cadena vacia si la fecha no es utilizable,
  * porque quien la consume la escribe directamente en mensajes de WhatsApp y un
  * "Invalid Date" ahi no hay quien lo corrija.

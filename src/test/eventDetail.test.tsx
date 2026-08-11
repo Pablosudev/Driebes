@@ -16,7 +16,7 @@ const evento = {
   image: "/uploads/events/cartel.png",
   creationDate: "2026-08-01T10:00:00.000Z",
   eventDate: "2026-08-22T18:00:00.000Z",
-  category: "festive",
+  category: "Festivo",
 };
 
 let openMock: ReturnType<typeof vi.fn>;

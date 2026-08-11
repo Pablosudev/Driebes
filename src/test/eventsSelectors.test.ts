@@ -13,7 +13,7 @@ const evento = (id: number, eventDate: string): EventInterface => ({
   image: null,
   creationDate: "2026-01-01T00:00:00.000Z",
   eventDate,
-  category: "other",
+  category: "Otro",
 });
 
 describe("currentMonthKey", () => {

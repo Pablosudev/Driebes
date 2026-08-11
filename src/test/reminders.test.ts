@@ -16,7 +16,7 @@ const evento = (id: number, day: string, hora = "18:00"): EventInterface => ({
   image: null,
   creationDate: "2026-08-01T10:00:00.000Z",
   eventDate: `${day}T${hora}:00.000Z`,
-  category: "festive",
+  category: "Festivo",
 });
 
 const reserva = (

@@ -12,7 +12,7 @@ const evento = (overrides: Partial<EventInterface> = {}): EventInterface => ({
   image: null,
   creationDate: "2026-08-01T10:00:00.000Z",
   eventDate: "2026-08-22T18:00:00.000Z",
-  category: "festive",
+  category: "Festivo",
   ...overrides,
 });
 
@@ -48,17 +48,17 @@ describe("formatEventWhatsApp", () => {
     expect(message).not.toContain("1 de agosto de 2026");
   });
 
-  it("traduce la categoria a su etiqueta en castellano", () => {
-    expect(formatEventWhatsApp(evento({ category: "sports" }))).toContain(
+  it("escribe la categoria tal y como viene de la API", () => {
+    expect(formatEventWhatsApp(evento({ category: "Deportivo" }))).toContain(
       "Categoría: Deportivo",
     );
-    expect(formatEventWhatsApp(evento({ category: "religious" }))).toContain(
+    expect(formatEventWhatsApp(evento({ category: "Religioso" }))).toContain(
       "Categoría: Religioso",
     );
   });
 
   it("omite la categoria generica, que no aporta nada al vecino", () => {
-    expect(formatEventWhatsApp(evento({ category: "other" }))).toBe(
+    expect(formatEventWhatsApp(evento({ category: "Otro" }))).toBe(
       [
         "Fiesta de Verano",
         "",

@@ -37,12 +37,8 @@ const MODAL_TITLE: Record<"create" | "edit", Record<PublicationType, string>> = 
   },
 };
 
-const CATEGORY_OPTIONS = [
-  { value: "sports", label: "Deportivo" },
-  { value: "festive", label: "Festivo" },
-  { value: "religious", label: "Religioso" },
-  { value: "other", label: "Otro" },
-];
+// Se guardan en español, asi que el valor y lo que se lee son lo mismo.
+const CATEGORY_OPTIONS = ["Deportivo", "Festivo", "Religioso", "Otro"];
 
 export default function PublicationFormModal({
   type,
@@ -57,7 +53,7 @@ export default function PublicationFormModal({
     description: initialValues?.description ?? "",
     image: initialValues?.image ?? null,
     eventDate: initialValues?.eventDate ?? "",
-    category: initialValues?.category ?? CATEGORY_OPTIONS[0].value,
+    category: initialValues?.category ?? CATEGORY_OPTIONS[0],
     requirements: initialValues?.requirements ?? "",
     companyName: initialValues?.companyName ?? "",
     phone: initialValues?.phone ?? "",
@@ -185,8 +181,8 @@ export default function PublicationFormModal({
                   className="rounded-lg border border-tertiary-300 px-3 py-2 font-body text-body focus:border-primary focus:outline-none"
                 >
                   {CATEGORY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                    <option key={option} value={option}>
+                      {option}
                     </option>
                   ))}
                 </select>

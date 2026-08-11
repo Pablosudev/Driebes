@@ -1,6 +1,8 @@
 import type { RequestStatus } from "../../../shared/types";
 
-export type Category = 'sports' | 'festive' | 'religious' | 'other';
+// En español porque es el texto que se muestra: la API los guarda ya asi y no
+// existe capa de traduccion en ningun sitio.
+export type Category = 'Deportivo' | 'Festivo' | 'Religioso' | 'Otro';
 
 export type AllEventsInterface = EventInterface[];
 

@@ -27,13 +27,6 @@ import PublicationFormModal from "../../../shared/components/PublicationFormModa
 import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 import type { Category } from "../Interfaces/EventsInterface";
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  sports: "Deportivo",
-  festive: "Festivo",
-  religious: "Religioso",
-  other: "Otro",
-};
-
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -167,7 +160,7 @@ export default function EventDetail() {
         <div className="absolute inset-x-4 bottom-4 flex items-end justify-between gap-4 rounded-2xl bg-white p-5 shadow-md">
           <div>
             <span className="inline-flex items-center rounded-full bg-primary-100 px-3 py-1 font-label text-xs text-primary-700">
-              {CATEGORY_LABELS[event.category]}
+              {event.category}
             </span>
 
             <h1 className="mt-3 font-headline text-headline">{event.title}</h1>

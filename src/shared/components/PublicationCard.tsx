@@ -4,6 +4,7 @@ import {
   IoLocationOutline,
 } from "react-icons/io5";
 import { mediaUrl } from "../apiFetch";
+import { shortDateLabel } from "../dates";
 
 interface PublicationCardProps {
   image: string | null;
@@ -12,6 +13,7 @@ interface PublicationCardProps {
   title: string;
   description: string;
   location?: string;
+  finished?: boolean;
   onClick?: () => void;
 }
 
@@ -22,6 +24,7 @@ export default function PublicationCard({
   title,
   description,
   location,
+  finished = false,
   onClick,
 }: PublicationCardProps) {
   return (
@@ -50,19 +53,39 @@ export default function PublicationCard({
           <IoImageOutline className="h-8 w-8 text-tertiary-500" />
         )}
 
-        <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 font-label text-xs text-neutral">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-          {status}
-        </span>
+        {/* Antes de la etiqueta: al ser los dos absolutos, el velo taparia el
+            estado si se pintase despues. */}
+        {finished && <div className="absolute inset-0 bg-neutral/30" />}
 
-        <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 font-label text-xs text-neutral">
-          <IoCalendarClearOutline className="h-3.5 w-3.5" />
-          {date}
+        <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1 font-label text-xs text-neutral">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              finished ? "bg-secondary-400" : "bg-primary"
+            }`}
+          />
+          {status}
         </span>
       </div>
 
       <div className="flex flex-col gap-3 p-4">
-        <h3 className="font-headline text-headline">{title}</h3>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            {shortDateLabel(date) && (
+              <span className="flex items-center gap-1.5 font-body text-xs text-secondary-500">
+                <IoCalendarClearOutline className="h-3.5 w-3.5" />
+                {shortDateLabel(date)}
+              </span>
+            )}
+
+            {finished && (
+              <span className="rounded-full bg-danger px-2.5 py-0.5 font-label text-[0.6875rem] tracking-wide text-white uppercase">
+                Finalizado
+              </span>
+            )}
+          </div>
+
+          <h3 className="font-headline text-headline">{title}</h3>
+        </div>
 
         <p className="font-body text-body text-secondary-500 line-clamp-2">
           {description}

@@ -30,7 +30,7 @@ const eventFixture: EventInterface = {
   image: "/uploads/events/cartel.png",
   creationDate: "2026-08-03",
   eventDate: "2026-09-08",
-  category: "festive",
+  category: "Festivo",
 };
 
 const otherEventFixture: EventInterface = {
@@ -40,7 +40,7 @@ const otherEventFixture: EventInterface = {
   image: null,
   creationDate: "2026-08-03",
   eventDate: "2026-10-19",
-  category: "sports",
+  category: "Deportivo",
 };
 
 /** Formulario sin imagen: el caso mas comun al editar. */
@@ -48,7 +48,7 @@ const eventFormInput: EventFormInput = {
   title: "Fiestas patronales",
   description: "Programa completo de las fiestas del municipio",
   eventDate: "2026-09-08",
-  category: "festive",
+  category: "Festivo",
   image: null,
 };
 
@@ -506,7 +506,7 @@ describe("updateEventThunk", () => {
     const edited: EventInterface = {
       ...eventFixture,
       title: "Fiestas patronales 2026",
-      category: "other",
+      category: "Otro",
     };
 
     const state = eventReducer(

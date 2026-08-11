@@ -3,6 +3,7 @@ import { FaChevronDown } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import PublicationCard from "../../../shared/components/PublicationCard";
+import { hasPassed } from "../../../shared/dates";
 import PublicationFormModal from "../../../shared/components/PublicationFormModal";
 import type { PublicationFormValues } from "../../../shared/components/PublicationFormModal";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
@@ -84,8 +85,9 @@ export default function Events() {
             <PublicationCard
               key={event.id}
               image={event.image}
-              status="PUBLICADO"
+              status={event.category}
               date={event.eventDate}
+              finished={hasPassed(event.eventDate)}
               title={event.title}
               description={event.description}
               onClick={() => navigate(`/eventos/${event.id}`)}
