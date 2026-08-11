@@ -71,8 +71,14 @@ let fetchMock: ReturnType<typeof vi.fn>;
 const fetchInit = (call = 0): RequestInit =>
   fetchMock.mock.calls[call][1] as RequestInit;
 
-/** Devuelve el FormData enviado en la n-ésima llamada a fetch. */
-const sentFormData = (call = 0): FormData => fetchInit(call).body as FormData;
+/**
+ * Devuelve el cuerpo JSON enviado en la n-ésima llamada a fetch.
+ *
+ * Las ofertas no llevan imagen, asi que viajan como JSON y no como multipart:
+ * el router de la API lee `req.body` sin parser de multipart.
+ */
+const sentJson = (call = 0): Record<string, unknown> =>
+  JSON.parse(fetchInit(call).body as string);
 
 /** Lee una cabecera enviada en la n-ésima llamada a fetch. */
 const sentHeader = (name: string, call = 0): string | null =>
@@ -325,34 +331,43 @@ describe("createJobThunk", () => {
     expect(fetchInit().method).toBe("POST");
   });
 
-  it("envia los seis campos como FormData", async () => {
+  it("envia los seis campos como JSON", async () => {
     fetchMock.mockResolvedValue(okResponse(jobFixture));
 
     await makeStore().dispatch(createJobThunk(jobInput));
-    const formData = sentFormData();
 
-    expect(formData).toBeInstanceOf(FormData);
-    expect(formData.get("title")).toBe(jobInput.title);
-    expect(formData.get("description")).toBe(jobInput.description);
-    expect(formData.get("requirements")).toBe(jobInput.requirements);
-    expect(formData.get("companyName")).toBe(jobInput.companyName);
-    expect(formData.get("phone")).toBe(jobInput.phone);
-    expect(formData.get("email")).toBe(jobInput.email);
+    expect(sentJson()).toEqual({
+      title: jobInput.title,
+      description: jobInput.description,
+      requirements: jobInput.requirements,
+      companyName: jobInput.companyName,
+      phone: jobInput.phone,
+      email: jobInput.email,
+    });
   });
 
-  // phone y email son opcionales: si vienen a null no se añaden al FormData,
-  // porque un FormData los convertiria en la cadena "null".
-  it("omite phone y email cuando no se rellenan", async () => {
+  it("declara el Content-Type para que la API parsee el cuerpo", async () => {
+    // Sin esta cabecera express.json() no procesa el body y req.body llega
+    // vacio, asi que se crearia una oferta sin datos.
+    fetchMock.mockResolvedValue(okResponse(jobFixture));
+
+    await makeStore().dispatch(createJobThunk(jobInput));
+
+    expect(sentHeader("Content-Type")).toBe("application/json");
+  });
+
+  // phone y email son opcionales. Al ir en JSON llegan como null de verdad, no
+  // como la cadena "null" en que los convertiria un FormData.
+  it("envia phone y email a null cuando no se rellenan", async () => {
     fetchMock.mockResolvedValue(okResponse(otherJobFixture));
 
     await makeStore().dispatch(
       createJobThunk({ ...jobInput, phone: null, email: null }),
     );
-    const formData = sentFormData();
 
-    expect(formData.has("phone")).toBe(false);
-    expect(formData.has("email")).toBe(false);
-    expect(formData.get("title")).toBe(jobInput.title);
+    expect(sentJson().phone).toBeNull();
+    expect(sentJson().email).toBeNull();
+    expect(sentJson().title).toBe(jobInput.title);
   });
 
   it("pasa a pending mientras la peticion esta en vuelo", () => {
@@ -439,22 +454,23 @@ describe("updateJobThunk", () => {
     expect(fetchInit().method).toBe("PUT");
   });
 
-  it("envia los seis campos como FormData", async () => {
+  it("envia los seis campos como JSON", async () => {
     fetchMock.mockResolvedValue(okResponse(jobFixture));
 
     await makeStore().dispatch(updateJobThunk({ id: 1, jobData: jobInput }));
-    const formData = sentFormData();
 
-    expect(formData).toBeInstanceOf(FormData);
-    expect(formData.get("title")).toBe(jobInput.title);
-    expect(formData.get("description")).toBe(jobInput.description);
-    expect(formData.get("requirements")).toBe(jobInput.requirements);
-    expect(formData.get("companyName")).toBe(jobInput.companyName);
-    expect(formData.get("phone")).toBe(jobInput.phone);
-    expect(formData.get("email")).toBe(jobInput.email);
+    expect(sentJson()).toEqual({
+      title: jobInput.title,
+      description: jobInput.description,
+      requirements: jobInput.requirements,
+      companyName: jobInput.companyName,
+      phone: jobInput.phone,
+      email: jobInput.email,
+    });
+    expect(sentHeader("Content-Type")).toBe("application/json");
   });
 
-  it("omite phone y email cuando no se rellenan", async () => {
+  it("envia phone y email a null cuando no se rellenan", async () => {
     fetchMock.mockResolvedValue(okResponse(jobFixture));
 
     await makeStore().dispatch(
@@ -463,10 +479,9 @@ describe("updateJobThunk", () => {
         jobData: { ...jobInput, phone: null, email: null },
       }),
     );
-    const formData = sentFormData();
 
-    expect(formData.has("phone")).toBe(false);
-    expect(formData.has("email")).toBe(false);
+    expect(sentJson().phone).toBeNull();
+    expect(sentJson().email).toBeNull();
   });
 
   it("pasa a pending mientras la peticion esta en vuelo", () => {
@@ -756,15 +771,15 @@ describe("jobs - cabecera Authorization", () => {
     expect(sentHeader("Authorization")).toBeNull();
   });
 
-  // Con FormData no se debe fijar Content-Type: lo pone el navegador con el
-  // boundary del multipart. Pero el token si tiene que viajar.
-  it("adjunta el token sin fijar Content-Type al enviar FormData", async () => {
+  // apiFetch añade el token sin pisar las cabeceras que trae el thunk: las dos
+  // tienen que llegar juntas.
+  it("adjunta el token junto al Content-Type al enviar JSON", async () => {
     localStorage.setItem("dashboard.token", "token-de-prueba");
     fetchMock.mockResolvedValue(okResponse(jobFixture));
 
     await makeStore().dispatch(createJobThunk(jobInput));
 
     expect(sentHeader("Authorization")).toBe("Bearer token-de-prueba");
-    expect(sentHeader("Content-Type")).toBeNull();
+    expect(sentHeader("Content-Type")).toBe("application/json");
   });
 });

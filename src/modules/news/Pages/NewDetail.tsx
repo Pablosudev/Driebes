@@ -7,8 +7,16 @@ import {
   IoPencilOutline,
   IoTrashOutline,
 } from "react-icons/io5";
+import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { mediaUrl } from "../../../shared/apiFetch";
+import { urlToFile } from "../../../shared/files";
+import {
+  canAttachFiles,
+  shareOnWhatsApp,
+} from "../../../services/whatsapp/whatsapp.service";
+import { formatNewsWhatsApp } from "../utils/formatNewsWhatsApp";
+import WhatsAppNoticeModal from "../../../shared/components/WhatsAppNoticeModal";
 import {
   getNewsByIdThunk,
   updateNewsThunk,
@@ -39,6 +47,8 @@ export default function NewDetail() {
   );
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showNotice, setShowNotice] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -47,6 +57,24 @@ export default function NewDetail() {
       dispatch(clearNewsId());
     };
   }, [dispatch, id]);
+
+  /*
+   * La foto se descarga al cargar la noticia y no al pulsar el boton: Safari
+   * invalida el gesto del usuario si se hace un await antes de compartir, y el
+   * panel no llegaria a abrirse.
+   */
+  useEffect(() => {
+    if (!newsItem?.image || !canAttachFiles()) return;
+
+    let cancelled = false;
+    urlToFile(mediaUrl(newsItem.image)).then((file) => {
+      if (!cancelled) setImageFile(file);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [newsItem?.image]);
 
   async function handleUpdate(form: PublicationFormValues) {
     if (!newsItem) return;
@@ -68,6 +96,27 @@ export default function NewDetail() {
     if (!newsItem) return;
     const result = await dispatch(deleteNewsThunk(newsItem.id));
     if (deleteNewsThunk.fulfilled.match(result)) navigate("/noticias");
+  }
+
+  function handleShareWhatsApp() {
+    if (!newsItem) return;
+
+    // El aviso solo aplica si hay foto y este equipo no puede adjuntarla.
+    if (newsItem.image && !canAttachFiles()) {
+      setShowNotice(true);
+      return;
+    }
+    void share();
+  }
+
+  async function share() {
+    if (!newsItem) return;
+
+    setShowNotice(false);
+    await shareOnWhatsApp(
+      formatNewsWhatsApp(newsItem, { includeImageUrl: !imageFile }),
+      imageFile,
+    );
   }
 
   if (getStatus === "pending") {
@@ -118,6 +167,15 @@ export default function NewDetail() {
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
+              onClick={handleShareWhatsApp}
+              className="flex items-center gap-2 rounded-lg bg-whatsapp px-4 py-2 font-label text-label text-white transition-colors hover:bg-whatsapp-600"
+            >
+              <FaWhatsapp className="h-4.5 w-4.5" />
+              Compartir por WhatsApp
+            </button>
+
+            <button
+              type="button"
               onClick={() => setIsEditing(true)}
               aria-label="Editar noticia"
               className="rounded-md p-2 text-secondary-400 transition-colors hover:bg-tertiary-100 hover:text-secondary-600"
@@ -151,6 +209,13 @@ export default function NewDetail() {
 
         <p className="mt-4 font-body text-body">{newsItem.description}</p>
       </div>
+
+      {showNotice && (
+        <WhatsAppNoticeModal
+          onConfirm={share}
+          onClose={() => setShowNotice(false)}
+        />
+      )}
 
       {isEditing && (
         <PublicationFormModal

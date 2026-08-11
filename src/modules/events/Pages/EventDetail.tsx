@@ -7,8 +7,16 @@ import {
   IoPencilOutline,
   IoTrashOutline,
 } from "react-icons/io5";
+import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { mediaUrl } from "../../../shared/apiFetch";
+import { urlToFile } from "../../../shared/files";
+import {
+  canAttachFiles,
+  shareOnWhatsApp,
+} from "../../../services/whatsapp/whatsapp.service";
+import { formatEventWhatsApp } from "../utils/formatEventWhatsApp";
+import WhatsAppNoticeModal from "../../../shared/components/WhatsAppNoticeModal";
 import {
   getEventByIdThunk,
   updateEventThunk,
@@ -49,6 +57,8 @@ export default function EventDetail() {
   );
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showNotice, setShowNotice] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -57,6 +67,24 @@ export default function EventDetail() {
       dispatch(clearEventId());
     };
   }, [dispatch, id]);
+
+  /*
+   * El cartel se descarga al cargar el evento y no al pulsar el boton: Safari
+   * invalida el gesto del usuario si se hace un await antes de compartir, y el
+   * panel no llegaria a abrirse.
+   */
+  useEffect(() => {
+    if (!event?.image || !canAttachFiles()) return;
+
+    let cancelled = false;
+    urlToFile(mediaUrl(event.image)).then((file) => {
+      if (!cancelled) setImageFile(file);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [event?.image]);
 
   async function handleUpdate(form: PublicationFormValues) {
     if (!event) return;
@@ -80,6 +108,27 @@ export default function EventDetail() {
     if (!event) return;
     const result = await dispatch(deleteEventThunk(event.id));
     if (deleteEventThunk.fulfilled.match(result)) navigate("/eventos");
+  }
+
+  function handleShareWhatsApp() {
+    if (!event) return;
+
+    // El aviso solo aplica si hay cartel y este equipo no puede adjuntarlo.
+    if (event.image && !canAttachFiles()) {
+      setShowNotice(true);
+      return;
+    }
+    void share();
+  }
+
+  async function share() {
+    if (!event) return;
+
+    setShowNotice(false);
+    await shareOnWhatsApp(
+      formatEventWhatsApp(event, { includeImageUrl: !imageFile }),
+      imageFile,
+    );
   }
 
   if (getStatus === "pending") {
@@ -125,6 +174,15 @@ export default function EventDetail() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleShareWhatsApp}
+              className="flex items-center gap-2 rounded-lg bg-whatsapp px-4 py-2 font-label text-label text-white transition-colors hover:bg-whatsapp-600"
+            >
+              <FaWhatsapp className="h-4.5 w-4.5" />
+              Compartir por WhatsApp
+            </button>
+
             <button
               type="button"
               onClick={() => setIsEditing(true)}
@@ -188,6 +246,13 @@ export default function EventDetail() {
           </div>
         </div>
       </div>
+
+      {showNotice && (
+        <WhatsAppNoticeModal
+          onConfirm={share}
+          onClose={() => setShowNotice(false)}
+        />
+      )}
 
       {isEditing && (
         <PublicationFormModal

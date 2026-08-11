@@ -24,6 +24,24 @@ export function dayRange(from: string, days: number): string[] {
   });
 }
 
+/**
+ * "22 de agosto de 2026". Devuelve cadena vacia si la fecha no es utilizable,
+ * porque quien la consume la escribe directamente en mensajes de WhatsApp y un
+ * "Invalid Date" ahi no hay quien lo corrija.
+ */
+export function longDateLabel(isoDate: string): string {
+  if (!isoDate) return "";
+
+  const date = new Date(`${toDay(isoDate)}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export function dayLabel(day: string, today: string = todayKey()): string {
   const [tomorrow] = dayRange(today, 2).slice(1);
   if (day === today) return "Hoy";

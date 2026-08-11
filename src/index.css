@@ -69,6 +69,13 @@
   --color-neutral-900: #1d1d1f;
   --color-neutral-950: #121214;
 
+  /* --- Marca externa ----------------------------------------
+     Verde de WhatsApp. No pertenece a la paleta del
+     Ayuntamiento: se usa solo en el boton de compartir, donde
+     el color reconocible es lo que hace de senal. */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-600: #1eb955;
+
   /* --- Tipografia -------------------------------------------
      Inter en los tres roles; los diferencia el peso y el tamano,
      no la familia. Pesos 400-700 cargados en index.html. */

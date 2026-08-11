@@ -9,7 +9,10 @@ import {
   IoPencilOutline,
   IoTrashOutline,
 } from "react-icons/io5";
+import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { shareOnWhatsApp } from "../../../services/whatsapp/whatsapp.service";
+import { formatJobWhatsApp } from "../utils/formatJobWhatsApp";
 import {
   getJobsByIdThunk,
   updateJobThunk,
@@ -72,6 +75,13 @@ export default function JobDetail() {
     if (deleteJobsThunk.fulfilled.match(result)) navigate("/ofertas");
   }
 
+  // Sin aviso ni fichero adjunto: las ofertas no tienen imagen, asi que se
+  // comparten igual desde el ordenador que desde el movil.
+  function handleShareWhatsApp() {
+    if (!job) return;
+    void shareOnWhatsApp(formatJobWhatsApp(job));
+  }
+
   if (getStatus === "pending") {
     return (
       <p className="font-body text-body text-secondary-500">
@@ -107,6 +117,15 @@ export default function JobDetail() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleShareWhatsApp}
+              className="flex items-center gap-2 rounded-lg bg-whatsapp px-4 py-2 font-label text-label text-white transition-colors hover:bg-whatsapp-600"
+            >
+              <FaWhatsapp className="h-4.5 w-4.5" />
+              Compartir por WhatsApp
+            </button>
+
             <button
               type="button"
               onClick={() => setIsEditing(true)}

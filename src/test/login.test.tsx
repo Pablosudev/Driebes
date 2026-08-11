@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
+import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { authReducer } from "../modules/login/Features/authSlice";
 import { eventReducer } from "../modules/events/Features/eventsSlice";
@@ -52,6 +53,15 @@ const renderWithStore = (node: ReactNode) => {
   };
 };
 
+/**
+ * Monta la pantalla de login con un router alrededor.
+ *
+ * Lo necesita aunque no se navegue: en cuanto hay token, Login redirige con
+ * <Navigate>, y sin contexto de router eso lanza. Los tests de <App /> no usan
+ * este helper porque App ya trae su propio BrowserRouter.
+ */
+const renderLogin = () => renderWithStore(<MemoryRouter><Login /></MemoryRouter>);
+
 const okResponse = (body: unknown) =>
   ({ ok: true, status: 200, json: async () => body }) as unknown as Response;
 
@@ -94,7 +104,7 @@ afterEach(() => {
 
 describe("Login - render inicial", () => {
   it("muestra los dos campos y el boton", () => {
-    renderWithStore(<Login />);
+    renderLogin();
 
     expect(emailInput()).toBeInTheDocument();
     expect(passwordInput()).toBeInTheDocument();
@@ -102,19 +112,19 @@ describe("Login - render inicial", () => {
   });
 
   it("oculta la contraseña por defecto", () => {
-    renderWithStore(<Login />);
+    renderLogin();
 
     expect(passwordInput()).toHaveAttribute("type", "password");
   });
 
   it("no muestra ningun error al abrir", () => {
-    renderWithStore(<Login />);
+    renderLogin();
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("deja los campos con el autocompletado que esperan los gestores de contraseñas", () => {
-    renderWithStore(<Login />);
+    renderLogin();
 
     expect(emailInput()).toHaveAttribute("autocomplete", "username");
     expect(passwordInput()).toHaveAttribute("autocomplete", "current-password");
@@ -127,14 +137,14 @@ describe("Login - render inicial", () => {
 
 describe("Login - validacion", () => {
   it("arranca con el boton deshabilitado", () => {
-    renderWithStore(<Login />);
+    renderLogin();
 
     expect(submitButton()).toBeDisabled();
   });
 
   it("sigue deshabilitado si solo se rellena el correo", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
 
@@ -143,7 +153,7 @@ describe("Login - validacion", () => {
 
   it("sigue deshabilitado si solo se rellena la contraseña", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(passwordInput(), "secreto");
 
@@ -152,7 +162,7 @@ describe("Login - validacion", () => {
 
   it("se habilita con los dos campos rellenos", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -162,7 +172,7 @@ describe("Login - validacion", () => {
 
   it("no llama a la API si solo hay espacios en el correo", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "   ");
     await user.type(passwordInput(), "secreto");
@@ -179,7 +189,7 @@ describe("Login - validacion", () => {
 describe("Login - mostrar contraseña", () => {
   it("cambia el input a texto al pulsar Mostrar", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.click(screen.getByRole("button", { name: "Mostrar" }));
 
@@ -188,7 +198,7 @@ describe("Login - mostrar contraseña", () => {
 
   it("vuelve a ocultarla al pulsar Ocultar", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.click(screen.getByRole("button", { name: "Mostrar" }));
     await user.click(screen.getByRole("button", { name: "Ocultar" }));
@@ -198,7 +208,7 @@ describe("Login - mostrar contraseña", () => {
 
   it("refleja el estado en aria-pressed", async () => {
     const user = userEvent.setup();
-    renderWithStore(<Login />);
+    renderLogin();
     const toggle = screen.getByRole("button", { name: "Mostrar" });
 
     expect(toggle).toHaveAttribute("aria-pressed", "false");
@@ -219,7 +229,7 @@ describe("Login - envio correcto", () => {
   it("manda las credenciales escritas a POST /auth/login", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(okResponse(authResponse));
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -236,7 +246,7 @@ describe("Login - envio correcto", () => {
   it("recorta los espacios del correo antes de enviarlo", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(okResponse(authResponse));
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "  plopez@aries.es  ");
     await user.type(passwordInput(), "secreto");
@@ -251,7 +261,7 @@ describe("Login - envio correcto", () => {
   it("deja la sesion iniciada en el store", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(okResponse(authResponse));
-    const { store } = renderWithStore(<Login />);
+    const { store } = renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -267,7 +277,7 @@ describe("Login - envio correcto", () => {
   it("se puede enviar con Enter desde el campo de contraseña", async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(okResponse(authResponse));
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto{Enter}");
@@ -285,7 +295,7 @@ describe("Login - estado de carga", () => {
     const user = userEvent.setup();
     const pending = deferred<Response>();
     fetchMock.mockReturnValue(pending.promise);
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -305,7 +315,7 @@ describe("Login - estado de carga", () => {
     const user = userEvent.setup();
     const pending = deferred<Response>();
     fetchMock.mockReturnValue(pending.promise);
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -329,7 +339,7 @@ describe("Login - errores", () => {
     fetchMock.mockResolvedValue(
       errorResponse({ error: "Credenciales incorrectas" }, 401),
     );
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "mal");
@@ -343,7 +353,7 @@ describe("Login - errores", () => {
   it("muestra el error de conexion si fetch lanza", async () => {
     const user = userEvent.setup();
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "secreto");
@@ -359,7 +369,7 @@ describe("Login - errores", () => {
     fetchMock.mockResolvedValue(
       errorResponse({ error: "Credenciales incorrectas" }, 401),
     );
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "mal");
@@ -375,7 +385,7 @@ describe("Login - errores", () => {
     fetchMock.mockResolvedValue(
       errorResponse({ error: "Credenciales incorrectas" }, 401),
     );
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "mal");
@@ -392,7 +402,7 @@ describe("Login - errores", () => {
         errorResponse({ error: "Credenciales incorrectas" }, 401),
       )
       .mockResolvedValueOnce(okResponse(authResponse));
-    renderWithStore(<Login />);
+    renderLogin();
 
     await user.type(emailInput(), "plopez@aries.es");
     await user.type(passwordInput(), "mal");
