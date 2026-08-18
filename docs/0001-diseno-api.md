@@ -19,6 +19,7 @@ Todos los endpoints requieren un token JWT válido, **salvo estas excepciones p�
 - `POST /auth/login` — necesario para obtener el token.
 - `GET /health` — comprobación de estado del servicio.
 - `GET /events` y `GET /events/:id` — consulta pública de eventos.
+- `GET /bookings/calendar` — consulta pública de los días ocupados del local, sin datos del solicitante (ver `0002-actualizacion-booking-calendar.md`).
 
 ### Modelo (Usuario administrador)
 
@@ -139,11 +140,11 @@ Todos requieren autenticación (ver sección 1).
 |--------|----------------------------|----------------------------------------------------|
 | GET    | /bookings                  | Listar todas las reservas                          |
 | GET    | /bookings/:id              | Obtener una reserva por ID                         |
-| GET    | /bookings?state=pending    | Filtrar reservas por estado                        |
-| GET    | /bookings?date=2026-07-01  | Consultar disponibilidad en una fecha concreta     |
 | POST   | /bookings                  | Crear una solicitud de reserva (estado: pendiente) |
-| PATCH  | /bookings/:id/state        | Cambiar estado de una reserva                      |
+| PUT    | /bookings/:id              | Actualizar una reserva, incluido su estado         |
 | DELETE | /bookings/:id              | Eliminar una reserva                               |
+
+> Existe además `GET /bookings/calendar`, **público** y sin datos del solicitante, para el calendario de la web municipal. Su contrato está en `0002-actualizacion-booking-calendar.md`.
 
 ---
 

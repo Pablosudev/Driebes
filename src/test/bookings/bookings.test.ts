@@ -18,7 +18,6 @@ const api = {
   get: (url: string) => request(app).get(url).set('Authorization', bearer),
   post: (url: string) => request(app).post(url).set('Authorization', bearer),
   put: (url: string) => request(app).put(url).set('Authorization', bearer),
-  patch: (url: string) => request(app).patch(url).set('Authorization', bearer),
   delete: (url: string) => request(app).delete(url).set('Authorization', bearer),
 };
 
@@ -207,53 +206,6 @@ describe('Bookings', () => {
 
   });
 
-  describe('GET /bookings?state=', () => {
-    it('devuelve 200 y un array al filtrar por estado', async () => {
-      await crearReserva();
-
-      const res = await api.get('/bookings?state=pending');
-
-      expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
-    });
-
-    it('solo devuelve reservas con el estado solicitado', async () => {
-      await crearReserva();
-
-      const res = await api.get('/bookings?state=pending');
-
-      expect(res.body.every((r: { state: string }) => r.state === 'pending')).toBe(true);
-    });
-
-    it('incluye una reserva pendiente recién creada al filtrar por ?state=pending', async () => {
-      const creada = await crearReserva('Filtrable', '600123123');
-
-      const res = await api.get('/bookings?state=pending');
-      const ids = res.body.map((r: { id: number }) => r.id);
-
-      expect(ids).toContain(creada.body.id);
-    });
-
-    it('no incluye la reserva al filtrar por un estado distinto (?state=reserved)', async () => {
-      const creada = await crearReserva();
-
-      const res = await api.get('/bookings?state=reserved');
-      const ids = res.body.map((r: { id: number }) => r.id);
-
-      expect(res.status).toBe(200);
-      expect(ids).not.toContain(creada.body.id);
-    });
-
-    it('sin el parámetro state devuelve todas las reservas', async () => {
-      const creada = await crearReserva();
-
-      const res = await api.get('/bookings');
-      const ids = res.body.map((r: { id: number }) => r.id);
-
-      expect(ids).toContain(creada.body.id);
-    });
-  });
-
   describe('GET /bookings/:id', () => {
     it('devuelve 200 y la reserva solicitada', async () => {
       const creada = await crearReserva('Reserva concreta', '611223344');
@@ -432,110 +384,6 @@ describe('Bookings', () => {
     });
   });
 
-  describe('PATCH /bookings/:id/state', () => {
-    it('confirma una reserva cambiando su estado a "reserved" y devuelve 200', async () => {
-      const creada = await crearReserva();
-
-      const res = await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'reserved' });
-
-      expect(res.status).toBe(200);
-      expect(res.body.id).toBe(creada.body.id);
-      expect(res.body.state).toBe('reserved');
-    });
-
-    it('persiste el cambio (un GET posterior devuelve el nuevo estado)', async () => {
-      const creada = await crearReserva();
-
-      await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'reserved' });
-
-      const res = await api.get(`/bookings/${creada.body.id}`);
-
-      expect(res.status).toBe(200);
-      expect(res.body.state).toBe('reserved');
-    });
-
-    it('responde en formato JSON', async () => {
-      const creada = await crearReserva();
-
-      const res = await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'reserved' });
-
-      expect(res.status).toBe(200);
-      expect(res.headers['content-type']).toMatch(/application\/json/);
-    });
-
-    it('la reserva confirmada aparece al filtrar por ?state=reserved', async () => {
-      const creada = await crearReserva();
-
-      await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'reserved' });
-
-      const res = await api.get('/bookings?state=reserved');
-      const ids = res.body.map((r: { id: number }) => r.id);
-
-      expect(res.status).toBe(200);
-      expect(ids).toContain(creada.body.id);
-      expect(res.body.every((r: { state: string }) => r.state === 'reserved')).toBe(true);
-    });
-
-    it('la reserva confirmada desaparece del filtro ?state=pending', async () => {
-      const creada = await crearReserva();
-
-      await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'reserved' });
-
-      const res = await api.get('/bookings?state=pending');
-      const ids = res.body.map((r: { id: number }) => r.id);
-
-      expect(ids).not.toContain(creada.body.id);
-    });
-
-    it('devuelve 400 si falta el campo state', async () => {
-      const creada = await crearReserva();
-
-      const res = await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({});
-
-      expect(res.status).toBe(400);
-    });
-
-    it('devuelve 400 si el estado no es válido', async () => {
-      const creada = await crearReserva();
-
-      const res = await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'invalido' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('devuelve 400 si se intenta asignar el estado "free" (no es asignable a mano)', async () => {
-      const creada = await crearReserva();
-
-      const res = await api
-        .patch(`/bookings/${creada.body.id}/state`)
-        .send({ state: 'free' });
-
-      expect(res.status).toBe(400);
-    });
-
-    it('devuelve 404 si la reserva no existe', async () => {
-      const res = await api
-        .patch('/bookings/999999/state')
-        .send({ state: 'reserved' });
-
-      expect(res.status).toBe(404);
-    });
-  });
-
   describe('DELETE /bookings/:id', () => {
     it('elimina una reserva existente y devuelve 204', async () => {
       const creada = await crearReserva();
@@ -622,9 +470,13 @@ describe('Bookings', () => {
         startDate: '2026-09-15T09:00:00Z',
         endDate: '2026-09-15T13:00:00Z',
       });
-      await api
-        .patch(`/bookings/${confirmada.body.id}/state`)
-        .send({ state: 'reserved' });
+      await api.put(`/bookings/${confirmada.body.id}`).send({
+        name: 'Confirmada',
+        phone: '600000005',
+        startDate: '2026-09-15T09:00:00Z',
+        endDate: '2026-09-15T13:00:00Z',
+        state: 'reserved',
+      });
 
       const res = await api.post('/bookings').send({
         name: 'Choca con confirmada',
@@ -656,42 +508,4 @@ describe('Bookings', () => {
     });
   });
 
-  describe('GET /bookings?date= (disponibilidad)', () => {
-    it('devuelve available: true para un día sin reservas', async () => {
-      const res = await api.get('/bookings?date=2027-01-01');
-
-      expect(res.status).toBe(200);
-      expect(res.body.date).toBe('2027-01-01');
-      expect(res.body.available).toBe(true);
-    });
-
-    it('devuelve available: false para un día ocupado', async () => {
-      await api.post('/bookings').send({
-        name: 'Ocupa el día',
-        phone: '600000010',
-        startDate: '2027-01-05T09:00:00Z',
-        endDate: '2027-01-05T13:00:00Z',
-      });
-
-      const res = await api.get('/bookings?date=2027-01-05');
-
-      expect(res.status).toBe(200);
-      expect(res.body.available).toBe(false);
-    });
-
-    it('vuelve a estar disponible tras eliminar la reserva de ese día', async () => {
-      const creada = await api.post('/bookings').send({
-        name: 'Ocupa temporal',
-        phone: '600000011',
-        startDate: '2027-01-10T09:00:00Z',
-        endDate: '2027-01-10T13:00:00Z',
-      });
-      await api.delete(`/bookings/${creada.body.id}`);
-
-      const res = await api.get('/bookings?date=2027-01-10');
-
-      expect(res.status).toBe(200);
-      expect(res.body.available).toBe(true);
-    });
-  });
 });

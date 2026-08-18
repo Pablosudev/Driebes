@@ -3,20 +3,15 @@ import { CreateBookingUseCase } from '../../domain/create-booking.use-case';
 import { ListBookingsUseCase } from '../../domain/list-bookings.use-case';
 import { GetBookingByIdUseCase } from '../../domain/get-booking-by-id.use-case';
 import { UpdateBookingUseCase } from '../../domain/update-booking.use-case';
-import { ChangeBookingStateUseCase } from '../../domain/change-booking-state.use-case';
 import { DeleteBookingUseCase } from '../../domain/delete-booking.use-case';
-import { CheckAvailabilityUseCase } from '../../domain/check-availability.use-case';
 import { ValidationError, NotFoundError, ConflictError } from '../../domain/errors';
-import type { BookingState } from '../../domain/booking.interface';
 
 interface BookingsRouterDeps {
   createBooking: CreateBookingUseCase;
   listBookings: ListBookingsUseCase;
   getBookingById: GetBookingByIdUseCase;
   updateBooking: UpdateBookingUseCase;
-  changeBookingState: ChangeBookingStateUseCase;
   deleteBooking: DeleteBookingUseCase;
-  checkAvailability: CheckAvailabilityUseCase;
 }
 
 export function BookingsRouter({
@@ -24,25 +19,13 @@ export function BookingsRouter({
   listBookings,
   getBookingById,
   updateBooking,
-  changeBookingState,
   deleteBooking,
-  checkAvailability,
 }: BookingsRouterDeps): Router {
   const router = Router();
 
-  router.get('/', async (req, res) => {
+  router.get('/', async (_req, res) => {
     try {
-      // ?date= consulta la disponibilidad de un día concreto.
-      if (typeof req.query.date === 'string') {
-        const date = req.query.date;
-        const available = await checkAvailability.execute(date);
-        res.status(200).json({ date, available });
-        return;
-      }
-
-      const state =
-        typeof req.query.state === 'string' ? (req.query.state as BookingState) : undefined;
-      const bookings = await listBookings.execute(state);
+      const bookings = await listBookings.execute();
       res.status(200).json(bookings);
     } catch {
       res.status(500).json({ error: 'Error interno del servidor' });
@@ -64,8 +47,7 @@ export function BookingsRouter({
   });
 
   router.post('/', async (req, res) => {
-    // Sin body parseable (Content-Type que no sea JSON) req.body llega undefined:
-    // sin este fallback, leer sus campos lanzaría y respondería un 500 en vez de un 400.
+  
     const body = req.body ?? {};
     try {
       const booking = await createBooking.execute({
@@ -115,25 +97,6 @@ export function BookingsRouter({
       }
       if (error instanceof ConflictError) {
         res.status(409).json({ error: error.message });
-        return;
-      }
-      res.status(500).json({ error: 'Error interno del servidor' });
-    }
-  });
-
-  router.patch('/:id/state', async (req, res) => {
-    const id = Number(req.params.id);
-    try {
-      const booking = await changeBookingState.execute(id, (req.body ?? {}).state);
-
-      res.status(200).json(booking);
-    } catch (error) {
-      if (error instanceof ValidationError) {
-        res.status(400).json({ error: error.message });
-        return;
-      }
-      if (error instanceof NotFoundError) {
-        res.status(404).json({ error: error.message });
         return;
       }
       res.status(500).json({ error: 'Error interno del servidor' });

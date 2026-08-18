@@ -37,25 +37,19 @@ const PREFIJO_PUBLICO = '/uploads/';
 
 /**
  * Borra del disco la imagen a la que apunta una URL pública de /uploads.
- *
- * No lanza nunca. Se llama después de haber borrado la fila, así que a estas
- * alturas la operación que pidió el cliente ya ha ido bien: un fichero que no
- * se ha podido borrar solo ocupa espacio, y no debe convertirse en un 500.
+ * No lanza nunca: un fichero que se resiste no debe convertirse en un 500.
  */
 export async function eliminarImagen(url: string | null | undefined): Promise<void> {
   if (!url || !url.startsWith(PREFIJO_PUBLICO)) return;
 
-  // La URL viene de base de datos, no de la petición, pero aun así resolvemos y
-  // comprobamos que el destino sigue dentro de UPLOADS_ROOT: así un valor
-  // manipulado ('/uploads/../../algo') no alcanza ficheros ajenos.
+  // El destino tiene que caer dentro de UPLOADS_ROOT, para que un valor
+  // manipulado ('/uploads/../../algo') no alcance ficheros ajenos.
   const destino = path.resolve(UPLOADS_ROOT, url.slice(PREFIJO_PUBLICO.length));
   if (!destino.startsWith(UPLOADS_ROOT + path.sep)) return;
 
   try {
-    // force ignora que el fichero ya no exista; el catch cubre el resto
-    // (permisos, o el fichero bloqueado por otro proceso en Windows).
     await fs.promises.rm(destino, { force: true });
   } catch {
-    /* basura en disco, no es motivo para fallar la respuesta */
+    /* el fichero se queda en disco, pero la respuesta no se rompe */
   }
 }

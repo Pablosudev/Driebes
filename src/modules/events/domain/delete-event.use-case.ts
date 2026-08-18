@@ -5,11 +5,7 @@ import { NotFoundError } from './errors';
 export class DeleteEventUseCase {
   constructor(private readonly repository: EventRepository) {}
 
-  /**
-   * Devuelve el evento que se ha borrado. El dominio no toca el disco, pero sí
-   * informa de qué imagen colgaba de la fila para que el transporte —que es
-   * quien creó el fichero— pueda retirarlo.
-   */
+  /** Devuelve el evento borrado, para que el transporte retire su imagen. */
   async execute(id: number): Promise<EventInterface> {
     const existing = await this.repository.findById(id);
     if (!existing) {

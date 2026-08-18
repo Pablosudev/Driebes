@@ -1,8 +1,8 @@
-import type { BookingInterface, BookingState } from '../../domain/booking.interface';
+import type { BookingInterface } from '../../domain/booking.interface';
 
 export interface BookingRepository {
   save(data: Omit<BookingInterface, 'id'>): Promise<BookingInterface>;
-  findAll(state?: BookingState): Promise<BookingInterface[]>;
+  findAll(): Promise<BookingInterface[]>;
   findById(id: number): Promise<BookingInterface | null>;
   update(id: number, data: Omit<BookingInterface, 'id'>): Promise<BookingInterface>;
   delete(id: number): Promise<void>;
@@ -18,9 +18,8 @@ export class InMemoryBookingRepository implements BookingRepository {
     return booking;
   }
 
-  async findAll(state?: BookingState): Promise<BookingInterface[]> {
-    const all = Array.from(this.bookings.values());
-    return state ? all.filter((booking) => booking.state === state) : all;
+  async findAll(): Promise<BookingInterface[]> {
+    return Array.from(this.bookings.values());
   }
 
   async findById(id: number): Promise<BookingInterface | null> {

@@ -43,6 +43,11 @@ const api = {
 // '/uploads/news/abc.png' -> ruta real en disco, para comprobar si el fichero está.
 const rutaEnDisco = (url: string) => path.join(UPLOADS_ROOT, url.replace(/^\/uploads\//, ''));
 
+const ficherosSubidos = () => {
+  const dir = path.join(UPLOADS_ROOT, 'news');
+  return fs.existsSync(dir) ? fs.readdirSync(dir).sort() : [];
+};
+
 // Helper: crea una noticia válida y devuelve la respuesta.
 async function crearNoticia(
   title = 'Corte de agua el lunes',
@@ -93,6 +98,18 @@ describe('Noticias - CRUD', () => {
         .field('title', 'Sin description');
 
       expect(res.status).toBe(400);
+    });
+
+    it('no deja la imagen en disco si la validación falla', async () => {
+      const antes = ficherosSubidos();
+
+      const res = await api
+        .post('/news')
+        .field('description', 'Falta el title')
+        .attach('image', Buffer.from('fake-image-content'), 'huerfana.png');
+
+      expect(res.status).toBe(400);
+      expect(ficherosSubidos()).toEqual(antes);
     });
   });
 
@@ -263,6 +280,58 @@ describe('Noticias - CRUD', () => {
         .field('description', 'No existe');
 
       expect(res.status).toBe(404);
+    });
+
+    it('al reemplazar la imagen borra la anterior del disco', async () => {
+      const creada = await api
+        .post('/news')
+        .field('title', 'Imagen original')
+        .field('description', 'Contenido')
+        .attach('image', Buffer.from('imagen-original'), 'original.png');
+
+      const anterior = rutaEnDisco(creada.body.image);
+      expect(fs.existsSync(anterior)).toBe(true);
+
+      const res = await api
+        .put(`/news/${creada.body.id}`)
+        .field('title', 'Imagen nueva')
+        .field('description', 'Contenido')
+        .attach('image', Buffer.from('imagen-nueva'), 'nueva.png');
+
+      expect(res.status).toBe(200);
+      expect(res.body.image).not.toBe(creada.body.image);
+      expect(fs.existsSync(anterior)).toBe(false);
+      expect(fs.existsSync(rutaEnDisco(res.body.image))).toBe(true);
+    });
+
+    it('conserva la imagen si la actualización no trae una nueva', async () => {
+      const creada = await api
+        .post('/news')
+        .field('title', 'Imagen a conservar')
+        .field('description', 'Contenido')
+        .attach('image', Buffer.from('fake-image-content'), 'conservar.png');
+
+      const res = await api
+        .put(`/news/${creada.body.id}`)
+        .field('title', 'Solo cambia el texto')
+        .field('description', 'Contenido nuevo');
+
+      expect(res.status).toBe(200);
+      expect(res.body.image).toBe(creada.body.image);
+      expect(fs.existsSync(rutaEnDisco(creada.body.image))).toBe(true);
+    });
+
+    it('no deja la imagen en disco si la validación falla', async () => {
+      const creada = await crearNoticia();
+      const antes = ficherosSubidos();
+
+      const res = await api
+        .put(`/news/${creada.body.id}`)
+        .field('description', 'Falta el title')
+        .attach('image', Buffer.from('fake-image-content'), 'huerfana.png');
+
+      expect(res.status).toBe(400);
+      expect(ficherosSubidos()).toEqual(antes);
     });
   });
 

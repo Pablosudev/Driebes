@@ -7,9 +7,7 @@ import { CreateBookingUseCase } from './domain/create-booking.use-case';
 import { ListBookingsUseCase } from './domain/list-bookings.use-case';
 import { GetBookingByIdUseCase } from './domain/get-booking-by-id.use-case';
 import { UpdateBookingUseCase } from './domain/update-booking.use-case';
-import { ChangeBookingStateUseCase } from './domain/change-booking-state.use-case';
 import { DeleteBookingUseCase } from './domain/delete-booking.use-case';
-import { CheckAvailabilityUseCase } from './domain/check-availability.use-case';
 import { BookingsRouter } from './infrastructure/transport/bookings.router';
 
 // Selecciona la implementación de persistencia. Por defecto, en memoria (los
@@ -29,8 +27,6 @@ export function buildBookingsRouter(): Router {
     listBookings: new ListBookingsUseCase(repository),
     getBookingById: new GetBookingByIdUseCase(repository),
     updateBooking: new UpdateBookingUseCase(repository),
-    changeBookingState: new ChangeBookingStateUseCase(repository),
     deleteBooking: new DeleteBookingUseCase(repository),
-    checkAvailability: new CheckAvailabilityUseCase(repository),
   });
 }

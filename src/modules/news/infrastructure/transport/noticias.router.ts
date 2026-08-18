@@ -78,6 +78,8 @@ export function NewsRouter({
 
         res.status(201).json(news);
       } catch (error) {
+        await eliminarImagen(image);
+
         if (error instanceof ValidationError) {
           res.status(400).json({ error: error.message });
           return;
@@ -104,14 +106,23 @@ export function NewsRouter({
       const image = rutaPublica('news', fileImage);
 
       try {
+        // El .catch deja que sea updateNews quien decida el código de respuesta.
+        const anterior = await getNewsById.execute(id).catch(() => null);
+
         const news = await updateNews.execute(id, {
           title: primerValor(fields.title),
           description: primerValor(fields.description),
           image,
         });
 
+        if (anterior && anterior.image !== news.image) {
+          await eliminarImagen(anterior.image);
+        }
+
         res.status(200).json(news);
       } catch (error) {
+        await eliminarImagen(image);
+
         if (error instanceof ValidationError) {
           res.status(400).json({ error: error.message });
           return;
@@ -129,9 +140,6 @@ export function NewsRouter({
     const id = Number(req.params.id);
     try {
       const eliminada = await deleteNews.execute(id);
-      // La fila ya no existe, así que su imagen es basura: la retiramos del
-      // disco. Va después del borrado y no lanza, de modo que un fichero
-      // problemático no impide responder 204.
       await eliminarImagen(eliminada.image);
       res.status(204).send();
     } catch (error) {

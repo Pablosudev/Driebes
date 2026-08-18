@@ -78,6 +78,8 @@ export function EventsRouter({
 
         res.status(201).json(event);
       } catch (error) {
+        await eliminarImagen(image);
+
         if (error instanceof ValidationError) {
           res.status(400).json({ error: error.message });
           return;
@@ -101,6 +103,9 @@ export function EventsRouter({
       const image = rutaPublica('events', fileImage);
 
       try {
+        // El .catch deja que sea updateEvent quien decida el código de respuesta.
+        const anterior = await getEventById.execute(id).catch(() => null);
+
         const event = await updateEvent.execute(id, {
           title: primerValor(fields.title),
           description: primerValor(fields.description),
@@ -109,8 +114,14 @@ export function EventsRouter({
           image,
         });
 
+        if (anterior && anterior.image !== event.image) {
+          await eliminarImagen(anterior.image);
+        }
+
         res.status(200).json(event);
       } catch (error) {
+        await eliminarImagen(image);
+
         if (error instanceof ValidationError) {
           res.status(400).json({ error: error.message });
           return;
@@ -128,9 +139,6 @@ export function EventsRouter({
     const id = Number(req.params.id);
     try {
       const eliminado = await deleteEvent.execute(id);
-      // La fila ya no existe, así que su imagen es basura: la retiramos del
-      // disco. Va después del borrado y no lanza, de modo que un fichero
-      // problemático no impide responder 204.
       await eliminarImagen(eliminado.image);
       res.status(204).send();
     } catch (error) {

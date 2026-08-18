@@ -34,9 +34,8 @@ export class PrismaBookingRepository implements BookingRepository {
     return toBooking(created);
   }
 
-  async findAll(state?: BookingState): Promise<BookingInterface[]> {
+  async findAll(): Promise<BookingInterface[]> {
     const rows = await this.prisma.booking.findMany({
-      where: state ? { state } : undefined,
       orderBy: { id: 'asc' },
     });
     return rows.map(toBooking);

@@ -41,6 +41,22 @@ async function createEvent(
 // '/uploads/events/abc.png' -> ruta real en disco, para comprobar si el fichero está.
 const rutaEnDisco = (url: string) => path.join(UPLOADS_ROOT, url.replace(/^\/uploads\//, ''));
 
+const ficherosSubidos = () => {
+  const dir = path.join(UPLOADS_ROOT, 'events');
+  return fs.existsSync(dir) ? fs.readdirSync(dir).sort() : [];
+};
+
+// Helper: crea un evento con imagen adjunta.
+function crearEventoConImagen(title: string, contenido: string) {
+  return api
+    .post('/events')
+    .field('title', title)
+    .field('description', 'Contenido')
+    .field('eventDate', '2026-08-15T18:00:00Z')
+    .field('category', 'Festivo')
+    .attach('image', Buffer.from(contenido), 'foto.png');
+}
+
 describe('Events', () => {
   describe('POST /events', () => {
     it('crea un evento y devuelve 201 con el recurso creado', async () => {
@@ -106,6 +122,20 @@ describe('Events', () => {
         .field('eventDate', '2026-08-15T18:00:00Z');
 
       expect(res.status).toBe(400);
+    });
+
+    it('no deja la imagen en disco si la validación falla', async () => {
+      const antes = ficherosSubidos();
+
+      const res = await api
+        .post('/events')
+        .field('description', 'Falta el title')
+        .field('eventDate', '2026-08-15T18:00:00Z')
+        .field('category', 'Deportivo')
+        .attach('image', Buffer.from('fake-image-content'), 'huerfana.png');
+
+      expect(res.status).toBe(400);
+      expect(ficherosSubidos()).toEqual(antes);
     });
   });
 
@@ -295,6 +325,56 @@ describe('Events', () => {
 
       expect(res.status).toBe(404);
     });
+
+    it('al reemplazar la imagen borra la anterior del disco', async () => {
+      const creado = await crearEventoConImagen('Imagen original', 'imagen-original');
+
+      const anterior = rutaEnDisco(creado.body.image);
+      expect(fs.existsSync(anterior)).toBe(true);
+
+      const res = await api
+        .put(`/events/${creado.body.id}`)
+        .field('title', 'Imagen nueva')
+        .field('description', 'Contenido')
+        .field('eventDate', '2026-09-20T18:00:00Z')
+        .field('category', 'Festivo')
+        .attach('image', Buffer.from('imagen-nueva'), 'nueva.png');
+
+      expect(res.status).toBe(200);
+      expect(res.body.image).not.toBe(creado.body.image);
+      expect(fs.existsSync(anterior)).toBe(false);
+      expect(fs.existsSync(rutaEnDisco(res.body.image))).toBe(true);
+    });
+
+    it('conserva la imagen si la actualización no trae una nueva', async () => {
+      const creado = await crearEventoConImagen('Imagen a conservar', 'fake-image-content');
+
+      const res = await api
+        .put(`/events/${creado.body.id}`)
+        .field('title', 'Solo cambia el texto')
+        .field('description', 'Contenido nuevo')
+        .field('eventDate', '2026-09-20T18:00:00Z')
+        .field('category', 'Festivo');
+
+      expect(res.status).toBe(200);
+      expect(res.body.image).toBe(creado.body.image);
+      expect(fs.existsSync(rutaEnDisco(creado.body.image))).toBe(true);
+    });
+
+    it('no deja la imagen en disco si la validación falla', async () => {
+      const creado = await createEvent();
+      const antes = ficherosSubidos();
+
+      const res = await api
+        .put(`/events/${creado.body.id}`)
+        .field('description', 'Falta el title')
+        .field('eventDate', '2026-09-20T18:00:00Z')
+        .field('category', 'Deportivo')
+        .attach('image', Buffer.from('fake-image-content'), 'huerfana.png');
+
+      expect(res.status).toBe(400);
+      expect(ficherosSubidos()).toEqual(antes);
+    });
   });
 
   describe('DELETE /events/:id', () => {
@@ -332,13 +412,7 @@ describe('Events', () => {
     });
 
     it('borra también la imagen del disco', async () => {
-      const creado = await api
-        .post('/events')
-        .field('title', 'Evento con imagen a borrar')
-        .field('description', 'Contenido')
-        .field('eventDate', '2026-08-15T18:00:00Z')
-        .field('category', 'Festivo')
-        .attach('image', Buffer.from('fake-image-content'), 'foto.png');
+      const creado = await crearEventoConImagen('Evento con imagen a borrar', 'fake-image-content');
 
       const enDisco = rutaEnDisco(creado.body.image);
       expect(fs.existsSync(enDisco)).toBe(true);
