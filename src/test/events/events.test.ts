@@ -1,6 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../app';
+import { UPLOADS_ROOT } from '../../utils/uploads';
 
 const app = createApp();
 
@@ -34,6 +37,9 @@ async function createEvent(
     .field('eventDate', eventDate)
     .field('category', category);
 }
+
+// '/uploads/events/abc.png' -> ruta real en disco, para comprobar si el fichero está.
+const rutaEnDisco = (url: string) => path.join(UPLOADS_ROOT, url.replace(/^\/uploads\//, ''));
 
 describe('Events', () => {
   describe('POST /events', () => {
@@ -323,6 +329,32 @@ describe('Events', () => {
       const res = await request(app).get(`/events/${superviviente.body.id}`);
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(superviviente.body.id);
+    });
+
+    it('borra también la imagen del disco', async () => {
+      const creado = await api
+        .post('/events')
+        .field('title', 'Evento con imagen a borrar')
+        .field('description', 'Contenido')
+        .field('eventDate', '2026-08-15T18:00:00Z')
+        .field('category', 'Festivo')
+        .attach('image', Buffer.from('fake-image-content'), 'foto.png');
+
+      const enDisco = rutaEnDisco(creado.body.image);
+      expect(fs.existsSync(enDisco)).toBe(true);
+
+      const res = await api.delete(`/events/${creado.body.id}`);
+
+      expect(res.status).toBe(204);
+      expect(fs.existsSync(enDisco)).toBe(false);
+    });
+
+    it('devuelve 204 aunque el evento no tuviera imagen', async () => {
+      const creado = await createEvent('Sin imagen', 'Otro');
+
+      const res = await api.delete(`/events/${creado.body.id}`);
+
+      expect(res.status).toBe(204);
     });
 
     it('devuelve 404 si el evento no existe', async () => {

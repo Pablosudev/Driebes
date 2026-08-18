@@ -1,6 +1,9 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../app';
+import { UPLOADS_ROOT } from '../../utils/uploads';
 
 const app = createApp();
 
@@ -36,6 +39,9 @@ const api = {
  * Las peticiones de creación/actualización usan multipart/form-data
  * (campos de texto vía .field(), imagen opcional vía .attach()).
  */
+
+// '/uploads/news/abc.png' -> ruta real en disco, para comprobar si el fichero está.
+const rutaEnDisco = (url: string) => path.join(UPLOADS_ROOT, url.replace(/^\/uploads\//, ''));
 
 // Helper: crea una noticia válida y devuelve la respuesta.
 async function crearNoticia(
@@ -292,6 +298,30 @@ describe('Noticias - CRUD', () => {
       const res = await api.get(`/news/${superviviente.body.id}`);
       expect(res.status).toBe(200);
       expect(res.body.id).toBe(superviviente.body.id);
+    });
+
+    it('borra también la imagen del disco', async () => {
+      const creada = await api
+        .post('/news')
+        .field('title', 'Noticia con imagen a borrar')
+        .field('description', 'Contenido')
+        .attach('image', Buffer.from('fake-image-content'), 'foto.png');
+
+      const enDisco = rutaEnDisco(creada.body.image);
+      expect(fs.existsSync(enDisco)).toBe(true);
+
+      const res = await api.delete(`/news/${creada.body.id}`);
+
+      expect(res.status).toBe(204);
+      expect(fs.existsSync(enDisco)).toBe(false);
+    });
+
+    it('devuelve 204 aunque la noticia no tuviera imagen', async () => {
+      const creada = await crearNoticia('Sin imagen', 'Contenido');
+
+      const res = await api.delete(`/news/${creada.body.id}`);
+
+      expect(res.status).toBe(204);
     });
 
     it('devuelve 404 si la noticia no existe', async () => {

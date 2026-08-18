@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createUploadForm, rutaPublica } from '../../../../utils/uploads';
+import { createUploadForm, eliminarImagen, rutaPublica } from '../../../../utils/uploads';
 import { CreateNewsUseCase } from '../../domain/create-news.use-case';
 import { ListNewsUseCase } from '../../domain/list-news.use-case';
 import { GetNewsByIdUseCase } from '../../domain/get-news-by-id.use-case';
@@ -128,7 +128,11 @@ export function NewsRouter({
   router.delete('/:id', async (req, res) => {
     const id = Number(req.params.id);
     try {
-      await deleteNews.execute(id);
+      const eliminada = await deleteNews.execute(id);
+      // La fila ya no existe, así que su imagen es basura: la retiramos del
+      // disco. Va después del borrado y no lanza, de modo que un fichero
+      // problemático no impide responder 204.
+      await eliminarImagen(eliminada.image);
       res.status(204).send();
     } catch (error) {
       if (error instanceof NotFoundError) {

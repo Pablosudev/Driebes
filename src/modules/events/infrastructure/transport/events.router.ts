@@ -1,5 +1,5 @@
 import { Router, type RequestHandler } from 'express';
-import { createUploadForm, rutaPublica } from '../../../../utils/uploads';
+import { createUploadForm, eliminarImagen, rutaPublica } from '../../../../utils/uploads';
 import { CreateEventUseCase } from '../../domain/create-event.use-case';
 import { ListEventsUseCase } from '../../domain/list-events.use-case';
 import { GetEventByIdUseCase } from '../../domain/get-event-by-id.use-case';
@@ -127,7 +127,11 @@ export function EventsRouter({
   router.delete('/:id', requireAuth, async (req, res) => {
     const id = Number(req.params.id);
     try {
-      await deleteEvent.execute(id);
+      const eliminado = await deleteEvent.execute(id);
+      // La fila ya no existe, así que su imagen es basura: la retiramos del
+      // disco. Va después del borrado y no lanza, de modo que un fichero
+      // problemático no impide responder 204.
+      await eliminarImagen(eliminado.image);
       res.status(204).send();
     } catch (error) {
       if (error instanceof NotFoundError) {
