@@ -130,7 +130,6 @@ Api-Ayto/
 ├── docs/
 │   ├── 0001-diseno-api.md              # Contrato de la API (modelos y endpoints)
 │   ├── 0002-actualizacion-booking-calendar.md  # Calendario público de reservas
-│   └── 9999-arquitectura-por-capas.md  # Guía de la arquitectura
 ├── prisma/
 │   ├── schema.prisma                   # Esquema de la base de datos
 │   └── seed.ts                         # Semilla del administrador inicial
