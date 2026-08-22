@@ -12,6 +12,7 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { shareOnWhatsApp } from "../../../services/whatsapp/whatsapp.service";
+import { shortDateLabel } from "../../../shared/dates";
 import { formatJobWhatsApp } from "../utils/formatJobWhatsApp";
 import {
   getJobsByIdThunk,
@@ -196,7 +197,9 @@ export default function JobDetail() {
               <p className="font-body text-xs text-secondary-500">
                 Fecha de creación
               </p>
-              <p className="font-label text-label">{job.createDate}</p>
+              <p className="font-label text-label">
+                {shortDateLabel(job.createDate)}
+              </p>
             </div>
           </div>
         </div>

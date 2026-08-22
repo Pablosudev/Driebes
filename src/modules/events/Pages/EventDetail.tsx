@@ -10,6 +10,7 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { mediaUrl } from "../../../shared/apiFetch";
+import { shortDateLabel } from "../../../shared/dates";
 import { urlToFile } from "../../../shared/files";
 import {
   canAttachFiles,
@@ -61,11 +62,7 @@ export default function EventDetail() {
     };
   }, [dispatch, id]);
 
-  /*
-   * El cartel se descarga al cargar el evento y no al pulsar el boton: Safari
-   * invalida el gesto del usuario si se hace un await antes de compartir, y el
-   * panel no llegaria a abrirse.
-   */
+
   useEffect(() => {
     if (!event?.image || !canAttachFiles()) return;
 
@@ -106,7 +103,6 @@ export default function EventDetail() {
   function handleShareWhatsApp() {
     if (!event) return;
 
-    // El aviso solo aplica si hay cartel y este equipo no puede adjuntarlo.
     if (event.image && !canAttachFiles()) {
       setShowNotice(true);
       return;
@@ -222,7 +218,9 @@ export default function EventDetail() {
               <p className="font-body text-xs text-secondary-500">
                 Fecha de creación
               </p>
-              <p className="font-label text-label">{event.creationDate}</p>
+              <p className="font-label text-label">
+                {shortDateLabel(event.creationDate)}
+              </p>
             </div>
           </div>
 
@@ -234,7 +232,9 @@ export default function EventDetail() {
               <p className="font-body text-xs text-secondary-500">
                 Fecha del evento
               </p>
-              <p className="font-label text-label">{event.eventDate}</p>
+              <p className="font-label text-label">
+                {shortDateLabel(event.eventDate)}
+              </p>
             </div>
           </div>
         </div>

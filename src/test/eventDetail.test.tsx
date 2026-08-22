@@ -171,6 +171,16 @@ describe("EventDetail - compartir desde un equipo que no adjunta el cartel", () 
   });
 });
 
+describe("EventDetail - fechas", () => {
+  it("muestra creacion y evento en dia/mes/año, no en ISO", async () => {
+    renderDetail();
+
+    expect(await screen.findByText("01/08/2026")).toBeInTheDocument();
+    expect(screen.getByText("22/08/2026")).toBeInTheDocument();
+    expect(screen.queryByText(/2026-08-\d\dT/)).not.toBeInTheDocument();
+  });
+});
+
 describe("EventDetail - compartir desde un movil", () => {
   it("adjunta el cartel sin mostrar el aviso", async () => {
     const share = enMovil();

@@ -115,3 +115,12 @@ describe("JobDetail - compartir por WhatsApp", () => {
     expect(mensajeCompartido()).toContain("Email: empleo@villa.example");
   });
 });
+
+describe("JobDetail - fechas", () => {
+  it("muestra la fecha de creacion en dia/mes/año, no en ISO", async () => {
+    renderDetail();
+
+    expect(await screen.findByText("05/08/2026")).toBeInTheDocument();
+    expect(screen.queryByText(/2026-08-\d\dT/)).not.toBeInTheDocument();
+  });
+});

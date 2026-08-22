@@ -10,6 +10,7 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { mediaUrl } from "../../../shared/apiFetch";
+import { shortDateLabel } from "../../../shared/dates";
 import { urlToFile } from "../../../shared/files";
 import {
   canAttachFiles,
@@ -156,7 +157,7 @@ export default function NewDetail() {
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-3 py-1 font-label text-xs text-primary-700">
               <IoCalendarClearOutline className="h-3.5 w-3.5" />
-              {newsItem.uploadDate}
+              {shortDateLabel(newsItem.uploadDate)}
             </span>
 
             <h1 className="mt-3 font-headline text-headline">
