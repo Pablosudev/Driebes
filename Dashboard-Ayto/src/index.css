@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Sistema de diseno del Dashboard: color y tipografia.
+
+   Se consume de dos formas:
+     - Utilidades Tailwind -> bg-primary, text-secondary-600, font-headline
+     - CSS plano           -> var(--color-primary), var(--font-body)
+   ============================================================ */
+
+@theme {
+  /* --- Color ------------------------------------------------
+     Cuatro colores de marca, cada uno con su gama.
+     El token sin numero es el valor exacto de la paleta. */
+
+  /* Primary --- #00A9CC */
+  --color-primary: #00a9cc;
+  --color-primary-50: #ebfcff;
+  --color-primary-100: #d1f7ff;
+  --color-primary-200: #a3f0ff;
+  --color-primary-300: #66e6ff;
+  --color-primary-400: #0ad6ff;
+  --color-primary-500: #00a9cc;
+  --color-primary-600: #0090ad;
+  --color-primary-700: #037186;
+  --color-primary-800: #055666;
+  --color-primary-900: #074350;
+  --color-primary-950: #062a32;
+
+  /* Secondary - #6E6E73 */
+  --color-secondary: #6e6e73;
+  --color-secondary-50: #f7f7f8;
+  --color-secondary-100: #efeff0;
+  --color-secondary-200: #dddddf;
+  --color-secondary-300: #c0c0c4;
+  --color-secondary-400: #96969c;
+  --color-secondary-500: #6e6e73;
+  --color-secondary-600: #59595f;
+  --color-secondary-700: #45454a;
+  --color-secondary-800: #303036;
+  --color-secondary-900: #222226;
+  --color-secondary-950: #131316;
+
+  /* Tertiary -- #E8E8ED */
+  --color-tertiary: #e8e8ed;
+  --color-tertiary-50: #f9f9fb;
+  --color-tertiary-100: #f4f4f6;
+  --color-tertiary-200: #e8e8ed;
+  --color-tertiary-300: #d7d7df;
+  --color-tertiary-400: #bcbcc8;
+  --color-tertiary-500: #9595a7;
+  --color-tertiary-600: #717184;
+  --color-tertiary-700: #545463;
+  --color-tertiary-800: #3c3c48;
+  --color-tertiary-900: #272730;
+  --color-tertiary-950: #16161d;
+
+  /* Neutral --- #1D1D1F */
+  --color-neutral: #1d1d1f;
+  --color-neutral-50: #fafafb;
+  --color-neutral-100: #f2f2f4;
+  --color-neutral-200: #e3e3e6;
+  --color-neutral-300: #c9c9ce;
+  --color-neutral-400: #a0a0a8;
+  --color-neutral-500: #76767e;
+  --color-neutral-600: #5a5a61;
+  --color-neutral-700: #434348;
+  --color-neutral-800: #2c2c30;
+  --color-neutral-900: #1d1d1f;
+  --color-neutral-950: #121214;
+
+  /* Danger --- #D92D20
+     Para lo que reclama atencion: errores y estados vencidos.
+     Ya se usaba en el mensaje de error del login sin estar definido. */
+  --color-danger: #d92d20;
+  --color-danger-50: #fef3f2;
+  --color-danger-100: #fee4e2;
+  --color-danger-200: #fecdca;
+  --color-danger-300: #fda29b;
+  --color-danger-400: #f97066;
+  --color-danger-500: #f04438;
+  --color-danger-600: #d92d20;
+  --color-danger-700: #b42318;
+  --color-danger-800: #912018;
+  --color-danger-900: #7a271a;
+  --color-danger-950: #55160c;
+
+  /* --- Marca externa ----------------------------------------
+     Verde de WhatsApp. No pertenece a la paleta del
+     Ayuntamiento: se usa solo en el boton de compartir, donde
+     el color reconocible es lo que hace de senal. */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-600: #1eb955;
+
+  /* --- Tipografia -------------------------------------------
+     Inter en los tres roles; los diferencia el peso y el tamano,
+     no la familia. Pesos 400-700 cargados en index.html. */
+  --font-headline: "Inter", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-label: "Inter", system-ui, -apple-system, sans-serif;
+
+  --text-headline: 1.5rem;
+  --text-headline--line-height: 1.2;
+  --text-headline--letter-spacing: -0.018em;
+  --text-headline--font-weight: 700;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+  --text-body--font-weight: 400;
+
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
+  --text-label--font-weight: 600;
+}
+
+@layer base {
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-tertiary-100);
+    color: var(--color-neutral);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ------------------------------------------------------------
+   FullCalendar: el paquete trae su propio CSS con variables
+   propias. Se reasignan a los tokens del theme para que el
+   calendario use la misma paleta y tipografia que el resto.
+   ------------------------------------------------------------ */
+.fc {
+  --fc-border-color: var(--color-tertiary-200);
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: var(--color-tertiary-100);
+  --fc-today-bg-color: var(--color-primary-50);
+  --fc-button-bg-color: var(--color-tertiary-100);
+  --fc-button-border-color: var(--color-tertiary-300);
+  --fc-button-text-color: var(--color-secondary-600);
+  --fc-button-hover-bg-color: var(--color-tertiary-200);
+  --fc-button-hover-border-color: var(--color-tertiary-300);
+  --fc-button-active-bg-color: var(--color-primary);
+  --fc-button-active-border-color: var(--color-primary);
+
+  font-family: var(--font-body);
+}
+
+/* Cabecera de dias (LUN, MAR...) en mayusculas y con el token de label. */
+.fc .fc-col-header-cell-cushion {
+  padding: 0.625rem 0.5rem;
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-secondary-500);
+  text-decoration: none;
+}
+
+.fc .fc-daygrid-day-number {
+  padding: 0.5rem;
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-neutral);
+  text-decoration: none;
+}
+
+/* Dias de meses adyacentes: se atenuan para distinguirlos del mes actual. */
+.fc .fc-day-other .fc-daygrid-day-number {
+  color: var(--color-tertiary-400);
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--color-primary);
+}
+
+.fc .fc-toolbar-title {
+  font-family: var(--font-headline);
+  font-size: var(--text-headline);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.fc .fc-daygrid-event {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* El dia es pulsable: el modal se abre desde la celda completa. */
+.fc .fc-daygrid-day {
+  cursor: pointer;
+}
+
+.fc .fc-button {
+  border-radius: 0.5rem;
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-transform: capitalize;
+  box-shadow: none;
+}
+
+.fc .fc-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: none;
+}

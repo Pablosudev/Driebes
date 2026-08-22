@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prueba de Web Share — ¿se puede enviar la imagen a WhatsApp?</title>
+    <style>
+      :root {
+        --primary: #00a9cc;
+        --whatsapp: #25d366;
+        --ink: #1d1d1f;
+        --muted: #6e6e73;
+        --line: #dddddf;
+        --bg: #f4f4f6;
+        --ok: #0f7b3f;
+        --bad: #b3261e;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 4rem;
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 15px/1.55 Inter, system-ui, -apple-system, sans-serif;
+      }
+      main { max-width: 46rem; margin: 0 auto; }
+      h1 { font-size: 1.4rem; line-height: 1.25; margin: 0 0 0.5rem; }
+      h2 { font-size: 1rem; margin: 0 0 0.75rem; }
+      p { margin: 0 0 1rem; }
+      .muted { color: var(--muted); font-size: 0.875rem; }
+      section {
+        background: #fff;
+        border-radius: 14px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+      }
+      dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 0.4rem 1rem; }
+      dt { color: var(--muted); font-size: 0.875rem; }
+      dd { margin: 0; font-weight: 600; font-size: 0.875rem; text-align: right; }
+      .ok { color: var(--ok); }
+      .bad { color: var(--bad); }
+      button {
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.8125rem;
+        border: 0;
+        border-radius: 9px;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+        color: #fff;
+        background: var(--primary);
+      }
+      button.wa { background: var(--whatsapp); }
+      button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+      input[type="text"] {
+        font: inherit;
+        font-size: 0.875rem;
+        flex: 1 1 20rem;
+        padding: 0.55rem 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+      }
+      textarea {
+        font: inherit;
+        font-size: 0.8125rem;
+        width: 100%;
+        min-height: 8.5rem;
+        padding: 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        resize: vertical;
+      }
+      pre {
+        margin: 0;
+        padding: 0.9rem;
+        background: #16161d;
+        color: #e8e8ed;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 22rem;
+        overflow: auto;
+      }
+      img#preview {
+        max-width: 100%;
+        max-height: 11rem;
+        border-radius: 10px;
+        margin-top: 0.75rem;
+        display: none;
+      }
+      ol { margin: 0 0 1rem; padding-left: 1.25rem; }
+      li { margin-bottom: 0.35rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>¿Se puede enviar la imagen a WhatsApp desde el navegador?</h1>
+      <p class="muted">
+        Esta página no forma parte del dashboard: es una prueba desechable para
+        decidir si merece la pena implementar el envío del fichero. Ábrela en
+        cada equipo que vaya a usar el dashboard y pásame el registro final.
+      </p>
+
+      <section>
+        <h2>1. Diagnóstico del navegador</h2>
+        <dl id="diag"></dl>
+        <p class="muted" style="margin: 1rem 0 0">
+          Si «Compartir ficheros» sale en rojo, en este equipo no se puede
+          adjuntar la imagen y no hay nada que hacer: seguiría usándose la URL.
+        </p>
+      </section>
+
+      <section>
+        <h2>2. Cargar la imagen</h2>
+        <p class="muted">
+          Se carga antes de compartir a propósito: si se descarga la imagen
+          dentro del clic, Safari invalida el gesto y el compartir falla.
+        </p>
+        <div class="row">
+          <input
+            type="text"
+            id="url"
+            value="http://localhost:3000/uploads/news/"
+            placeholder="URL de una imagen de la API"
+          />
+        </div>
+        <div class="row" style="margin-top: 0.6rem">
+          <button id="fetchImg">Descargar de la API</button>
+          <button id="genImg" class="ghost">Generar una de prueba</button>
+          <span class="muted" id="imgState">Sin imagen cargada</span>
+        </div>
+        <img id="preview" alt="" />
+      </section>
+
+      <section>
+        <h2>3. El mensaje</h2>
+        <textarea id="text">
+Obras en la Plaza Mayor
+
+El acceso peatonal permanecerá cerrado durante dos semanas.
+
+10 de agosto de 2026</textarea
+        >
+      </section>
+
+      <section>
+        <h2>4. Las tres pruebas</h2>
+        <ol>
+          <li>Pulsa cada botón y elige WhatsApp en el panel del sistema.</li>
+          <li>Mándate el mensaje a ti mismo o a un chat de pruebas.</li>
+          <li>
+            Fíjate en lo importante: <strong>si llega la foto</strong> y
+            <strong>si el texto llega con ella</strong>.
+          </li>
+        </ol>
+        <div class="row">
+          <button id="shareText" class="wa">Solo texto</button>
+          <button id="shareBoth" class="wa" disabled>Imagen + texto</button>
+          <button id="shareFile" class="wa" disabled>Solo imagen</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>5. Registro</h2>
+        <pre id="log">Esperando…</pre>
+        <div class="row" style="margin-top: 0.75rem">
+          <button id="copy" class="ghost">Copiar el registro</button>
+          <span class="muted" id="copyState"></span>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const lines = [];
+      let file = null;
+
+      function log(message) {
+        const time = new Date().toLocaleTimeString("es-ES");
+        lines.push(`[${time}] ${message}`);
+        $("log").textContent = lines.join("\n");
+      }
+
+      function row(label, value, good) {
+        const dt = document.createElement("dt");
+        dt.textContent = label;
+        const dd = document.createElement("dd");
+        dd.textContent = value;
+        if (good !== undefined) dd.className = good ? "ok" : "bad";
+        $("diag").append(dt, dd);
+      }
+
+      // --- Diagnostico -----------------------------------------------------
+
+      const canShareFiles = (() => {
+        if (!navigator.canShare) return false;
+        try {
+          const probe = new File(["x"], "probe.png", { type: "image/png" });
+          return navigator.canShare({ files: [probe] });
+        } catch {
+          return false;
+        }
+      })();
+
+      row("Contexto seguro (HTTPS o localhost)", isSecureContext ? "sí" : "no", isSecureContext);
+      row("navigator.share", "share" in navigator ? "sí" : "no", "share" in navigator);
+      row("navigator.canShare", "canShare" in navigator ? "sí" : "no", "canShare" in navigator);
+      row("Compartir ficheros", canShareFiles ? "sí" : "no", canShareFiles);
+      row("Dentro de un iframe", window.top === window.self ? "no" : "sí (puede falsear el resultado)");
+      row("Navegador", navigator.userAgent);
+
+      log(`Contexto seguro: ${isSecureContext} · share: ${"share" in navigator} · ficheros: ${canShareFiles}`);
+      log(`UA: ${navigator.userAgent}`);
+      if (!canShareFiles) {
+        log("AVISO: este navegador no puede adjuntar ficheros. Las pruebas 2 y 3 no se activarán.");
+      }
+
+      // --- Paso 2: cargar la imagen ---------------------------------------
+
+      function useFile(loaded, origin) {
+        file = loaded;
+        $("preview").src = URL.createObjectURL(loaded);
+        $("preview").style.display = "block";
+        $("imgState").textContent = `${loaded.name} · ${(loaded.size / 1024).toFixed(1)} kB · ${loaded.type}`;
+
+        const shareable = canShareFiles && navigator.canShare({ files: [loaded] });
+        $("shareBoth").disabled = !shareable;
+        $("shareFile").disabled = !shareable;
+
+        log(`Imagen cargada (${origin}): ${loaded.name}, ${loaded.type}, ${loaded.size} bytes`);
+        log(`canShare con esta imagen: ${shareable}`);
+        if (canShareFiles && !shareable) {
+          log("AVISO: el navegador rechaza este tipo de fichero en concreto.");
+        }
+      }
+
+      $("fetchImg").addEventListener("click", async () => {
+        const url = $("url").value.trim();
+        if (!url) return log("ERROR: escribe primero la URL de una imagen.");
+
+        log(`Descargando ${url}`);
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            return log(`ERROR: la API respondió ${response.status} ${response.statusText}`);
+          }
+          const blob = await response.blob();
+          const name = url.split("/").pop() || "imagen.png";
+          useFile(new File([blob], name, { type: blob.type || "image/png" }), "API");
+        } catch (error) {
+          log(`ERROR al descargar: ${error}`);
+          log("Suele ser CORS o que la API no está levantada.");
+        }
+      });
+
+      $("genImg").addEventListener("click", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 800;
+        canvas.height = 500;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#00a9cc";
+        ctx.fillRect(0, 0, 800, 500);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 44px system-ui, sans-serif";
+        ctx.fillText("Imagen de prueba", 60, 260);
+        ctx.font = "24px system-ui, sans-serif";
+        ctx.fillText("Dashboard · WhatsApp", 60, 310);
+
+        canvas.toBlob((blob) => {
+          useFile(new File([blob], "prueba.png", { type: "image/png" }), "generada");
+        }, "image/png");
+      });
+
+      // --- Paso 4: compartir ----------------------------------------------
+
+      // Sin await antes de share(): el gesto del usuario debe seguir vivo.
+      async function attempt(label, payload) {
+        log(`--- ${label} ---`);
+        try {
+          await navigator.share(payload);
+          log(`${label}: el panel de compartir se cerró sin error.`);
+          log("Comprueba en WhatsApp qué ha llegado de verdad (foto y texto).");
+        } catch (error) {
+          const name = error && error.name ? error.name : "Error";
+          log(`${label}: ${name} — ${error && error.message}`);
+          if (name === "AbortError") log("AbortError = lo has cancelado tú, no es un fallo.");
+          if (name === "NotAllowedError") log("NotAllowedError = permiso denegado o gesto ya consumido.");
+        }
+      }
+
+      $("shareText").addEventListener("click", () =>
+        attempt("Solo texto", { text: $("text").value }),
+      );
+
+      $("shareBoth").addEventListener("click", () =>
+        attempt("Imagen + texto", { files: [file], text: $("text").value }),
+      );
+
+      $("shareFile").addEventListener("click", () =>
+        attempt("Solo imagen", { files: [file] }),
+      );
+
+      // --- Registro --------------------------------------------------------
+
+      $("copy").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(lines.join("\n"));
+          $("copyState").textContent = "copiado";
+        } catch {
+          $("copyState").textContent = "no se ha podido copiar; selecciónalo a mano";
+        }
+      });
+    </script>
+  </body>
+</html>

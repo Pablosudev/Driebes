@@ -1,0 +1,214 @@
+# Dashboard Ayuntamiento (EN DESARROLLO)
+
+Panel de administración para la gestión de los servicios municipales: **noticias**, **eventos**, **ofertas de empleo** y **reservas del local municipal**, con la posibilidad de compartir las publicaciones por **WhatsApp**.
+
+---
+
+## 1. Descripción general
+
+Es el frontend que consume [Api-Ayto](../Api-Ayto). No tiene lógica de persistencia propia: todo lo que muestra viene de la API, y todo lo que edita se envía a ella.
+
+| Área | Para qué sirve |
+|---|---|
+| **Login** | Acceso del personal municipal con sus credenciales |
+| **Inicio** | Contadores del municipio, recordatorios de los próximos días y el tiempo |
+| **Noticias** | Publicación de avisos y noticias, con imagen opcional |
+| **Eventos** | Agenda municipal por categorías, con imagen opcional |
+| **Trabajos** | Bolsa de empleo municipal |
+| **Reservas** | Calendario de ocupación del refugio municipal |
+
+### Modelo de acceso
+
+Solo `/login` es pública; el resto de rutas están detrás de `RequireAuth`, que redirige al login si no hay token en el store.
+
+- El token JWT se guarda en `localStorage` (`dashboard.token`) y el slice de auth lo **rehidrata al arrancar**, de modo que un refresco de página no cierra la sesión.
+- El usuario **no** se cachea: tras un F5 hay token pero no usuario, y `meThunk` lo recupera de `GET /auth/me`.
+- Solo un **401 de la API** cierra la sesión. Un fallo de red no expulsa a quien tiene un token válido.
+- `apiFetch` centraliza la URL base y la cabecera `Authorization`; ningún módulo compone peticiones a mano.
+
+### Tratamiento de las fechas
+
+Las fechas se comparan como cadenas `YYYY-MM-DD` en lugar de con objetos `Date`. La API devuelve todo en UTC y convertirlo a hora local desplazaría de día los eventos y reservas de primera o última hora. Es el mismo criterio en el calendario, los recordatorios y los selectores.
+
+### Compartir por WhatsApp
+
+No hay integración con WhatsApp Business Platform: la Groups API oficial limita los grupos a 8 participantes y el del Ayuntamiento pasa de 100. El dashboard **compone el mensaje y abre WhatsApp**; el grupo lo elige la persona que comparte. La decisión completa está en [docs/0002-Implementación-WhatsApp.md](docs/0002-Implementación-WhatsApp.md).
+
+---
+
+## 2. Stack tecnológico
+
+### Lenguaje y build
+
+| Tecnología | Versión | Papel |
+|---|---|---|
+| **TypeScript** | `^7.0.2` | Lenguaje. Modo `strict`, target `ES2022`, módulos ESNext |
+| **Vite** | `^8.1.5` | Servidor de desarrollo y empaquetado |
+| **@vitejs/plugin-react** | `^6.0.4` | Soporte de React y JSX (`react-jsx`) |
+
+### Interfaz
+
+| Tecnología | Versión | Papel |
+|---|---|---|
+| **React** | `^19.2.8` | Librería de UI |
+| **react-router-dom** | `^7.18.2` | Enrutado y guarda de rutas |
+| **Tailwind CSS** | `^4.3.3` | Estilos. Los tokens de color y tipografía se declaran en `src/index.css` |
+| **FullCalendar** | `^6.1.21` | Calendario mensual de reservas (`core`, `daygrid`, `interaction`, `react`) |
+| **react-icons** | `^5.7.0` | Iconografía |
+
+### Estado
+
+| Tecnología | Versión | Papel |
+|---|---|---|
+| **@reduxjs/toolkit** | `^2.12.0` | Store, slices y thunks asíncronos |
+| **react-redux** | `^9.3.0` | Conexión de React con el store |
+
+### Pruebas
+
+| Tecnología | Versión | Papel |
+|---|---|---|
+| **Vitest** | `^4.1.10` | Ejecutor de tests, con entorno `jsdom` |
+| **@testing-library/react** | `^16.3.2` | Render y consultas sobre los componentes |
+| **@testing-library/user-event** | `^14.6.1` | Simulación de la interacción real del usuario |
+| **@testing-library/jest-dom** | `^7.0.0` | Matchers de DOM |
+
+### Scripts de npm
+
+| Script | Qué hace |
+|---|---|
+| `npm run dev` | Arranca el servidor de desarrollo de Vite |
+| `npm run build` | Compila la aplicación para producción |
+| `npm run preview` | Sirve el build ya compilado |
+| `npm test` | Lanza Vitest |
+
+### Variables de entorno
+
+| Variable | Obligatoria | Para qué |
+|---|:---:|---|
+| `VITE_API_URL` | ✅ | Base de la API. Se usa en cada petición y para resolver las URL de las imágenes |
+| `VITE_PUBLIC_SITE_URL` | — | Base de la web municipal. Sin ella, los mensajes de WhatsApp se envían sin el bloque «Más información» |
+
+---
+
+## 3. Estructuración
+
+El código se organiza **por módulos**: cada funcionalidad de negocio vive en su propia carpeta de `src/modules/`, en lugar de agrupar por tipo de fichero. Lo que se comparte entre módulos sale a `shared/` o `services/`.
+
+```
+Dashboard-Ayto/
+├── docs/
+│   ├── 0001-Planteamiento-inicial.md      # Alcance y organización del proyecto
+│   └── 0002-Implementación-WhatsApp.md    # Decisión sobre compartir por WhatsApp
+└── src/
+    ├── main.tsx                           # Arranque de React y del store
+    ├── App.tsx                            # Árbol de rutas
+    ├── index.css                          # Sistema de diseño (color y tipografía)
+    ├── store/
+    │   ├── store.ts                       # Combina los reducers de los módulos
+    │   └── hooks.ts                       # useAppDispatch / useAppSelector tipados
+    ├── shared/
+    │   ├── apiFetch.ts                    # Wrapper de fetch, token y mediaUrl
+    │   ├── dates.ts                       # Comparación y formato de fechas
+    │   ├── files.ts                        # urlToFile: descarga la imagen a adjuntar
+    │   ├── reminders.ts                    # Recordatorios de los próximos días
+    │   ├── weather.tsx                     # Temperatura actual (Open-Meteo)
+    │   ├── Layout/                         # Layout, menú lateral y navbar
+    │   └── components/                     # Componentes reutilizados entre módulos
+    ├── services/whatsapp/
+    │   ├── whatsapp.service.ts            # Abre WhatsApp con el mensaje
+    │   └── message.ts                     # Utilidades de composición del texto
+    ├── test/                              # Tests, uno o varios por módulo
+    └── modules/
+        ├── Home.tsx
+        ├── login/
+        ├── news/
+        ├── events/
+        ├── jobs/
+        └── bookings/
+```
+
+### Anatomía de un módulo
+
+Todos siguen la misma forma. Tomando `events` como ejemplo:
+
+```
+events/
+├── Features/                              # Estado del módulo
+│   ├── eventsThunks.ts                    #   Llamadas a la API (createAsyncThunk)
+│   ├── eventsSlice.ts                     #   Estado y reacciones a los thunks
+│   └── eventsSelectors.ts                 #   Derivados del estado (eventos del mes)
+├── Interfaces/
+│   └── EventsInterface.ts                 # Modelo del recurso y forma del slice
+├── Pages/
+│   ├── Events.tsx                         # Listado y creación
+│   └── EventDetail.tsx                    # Detalle, edición, borrado y compartir
+└── utils/
+    └── formatEventWhatsApp.ts             # Mensaje de WhatsApp del evento
+```
+
+### Convenciones
+
+- **Un estado por operación.** Cada slice guarda `status` y `error` **por operación** (`getEventsStatus`, `createEventStatus`, `deleteEventStatus`…), no uno global. Así el listado puede seguir visible mientras falla una creación.
+- **Los thunks nunca lanzan.** Traducen el error de la API a `rejectWithValue(mensaje)`, y la página pinta ese mensaje.
+- **El slice se mantiene puro.** Los efectos que no son estado (persistir o borrar el token) viven en el thunk.
+- **Los formatters pertenecen a su módulo**, porque conocen la estructura de su dominio; `whatsapp.service.ts` solo sabe abrir WhatsApp con un texto. Lo que se comparte entre formatters está en `services/whatsapp/message.ts`.
+- **La UI repetida sale a `shared/components/`.** `PublicationCard` y `PublicationFormModal` sirven a noticias, eventos y ofertas: el modal cambia sus campos según el `type` que recibe.
+
+### Tests
+
+21 ficheros en `src/test/` con **416 tests** que cubren thunks y slices, selectores, utilidades de fecha, formatters de WhatsApp y las páginas completas con Testing Library. `vite.config.ts` fija el entorno `jsdom` y carga `src/test/setup.ts`.
+
+---
+
+## 4. Funcionalidades
+
+### Autenticación
+
+Login contra `POST /auth/login`. El formulario no se envía hasta que hay email y contraseña, deshabilita sus campos mientras la petición está en curso y muestra el error de la API con `role="alert"`. Con sesión abierta, `/login` redirige al inicio.
+
+El cierre de sesión está en la navbar: borra el token guardado y limpia el store, sin llamar a la API (el JWT es *stateless*).
+
+### Inicio — `/`
+
+- **Tres contadores** enlazados a su sección: eventos programados **este mes**, ofertas de empleo y reservas activas. Mientras carga muestra `…` y ante un fallo `—`, en lugar de un cero que se leería como dato real.
+- **Recordatorios de los próximos 8 días**, agrupados por día con las etiquetas «Hoy» y «Mañana». Reúne eventos y reservas: una reserva de varios días aparece en cada uno de ellos, y las pendientes de confirmar se marcan con un distintivo. Las pendientes posteriores a la ventana se listan aparte para que no pasen desapercibidas.
+- **Temperatura actual** del municipio desde la API pública de Open-Meteo.
+
+### Noticias — `/noticias`
+
+| Vista | Qué permite |
+|---|---|
+| Listado | Ver todas las noticias en tarjetas y **crear** una nueva |
+| Detalle | Ver la noticia, **editarla**, **eliminarla** y **compartirla por WhatsApp** |
+
+La creación y la edición se envían como `multipart/form-data`, con imagen opcional. Al eliminar se vuelve al listado.
+
+### Eventos — `/eventos`
+
+Mismas vistas que noticias, más lo propio del recurso:
+
+- **Fecha y categoría** (`Deportivo`, `Festivo`, `Religioso`, `Otro`) en el formulario.
+- Los eventos **ya pasados** se atenúan en el listado y se marcan como «Finalizado». Un evento de hoy no cuenta como terminado.
+
+### Trabajos — `/ofertas`
+
+CRUD completo de la bolsa de empleo, en JSON y sin imagen. El formulario añade **requisitos**, **empresa** y los datos de contacto (teléfono y email, opcionales).
+
+### Reservas — `/reservas`
+
+Calendario mensual (FullCalendar, en español y empezando en lunes) con las reservas del refugio municipal.
+
+- **Cada estado tiene su color:** `reserved` en el color principal y `pending` en gris, para leer la situación de un vistazo. `free` no llega en el listado, es un estado calculado de la API para los días sin reserva.
+- **Al pulsar un día se abre su modal.** Si está libre, con el formulario de creación en blanco; si tiene reservas, con la que ocupa ese día y la posibilidad de crear otra o de elegir entre varias.
+- **El estado se cambia desde el modal**, entre `pending` y `reserved`. `free` no se ofrece porque la API no lo acepta.
+- Un conflicto de fechas lo rechaza la API con un `409` y el mensaje se muestra en el propio formulario.
+
+### Compartir por WhatsApp
+
+Disponible en el detalle de noticias, eventos y ofertas. Cada módulo compone su mensaje con los campos de su dominio, omitiendo lo que falte para que nunca se cuele un `null` en un mensaje a los vecinos, y añade el enlace a la web pública si está configurada.
+
+El comportamiento se adapta al dispositivo:
+
+- **En móvil**, la imagen se adjunta como **foto** mediante la Web Share API. El fichero se descarga al cargar la publicación y no al pulsar el botón: Safari invalida el gesto del usuario si hay un `await` por medio y el panel no llegaría a abrirse.
+- **En escritorio** se abre WhatsApp con el texto y la imagen viaja como enlace. La Web Share API dice que puede compartir ficheros y luego no ofrece WhatsApp, así que ahí se usa siempre el enlace, que funciona incluso con WhatsApp Web.
+- **Antes de compartir desde un equipo sin adjuntos** se avisa de que el envío queda mejor desde el móvil, y solo cuando la publicación tiene imagen. Si la persona cancela el panel del sistema, no se abre nada más: sería ignorar su decisión.
