@@ -1,0 +1,49 @@
+[
+    {
+        "id": 1,
+        "title": "Fiestas Patronales",
+        "description": "Celebración anual en honor a nuestro patrón con verbenas, procesiones, actividades deportivas y culturales.",
+        "actividades": [
+            "Verbenas nocturnas",
+            "Procesión tradicional",
+            "Comidas populares",
+            "Juegos infantiles"
+        ],
+        "categoria":"Festivo",
+        "fecha":"15-18 Agosto 2026",
+        "horario":"Todo el día",
+        "ubicacion":"Plaza Mayor",
+        "imagen":""
+    },
+    {
+        "id": 2,
+        "title": "Romería",
+        "description": "Conmemoración del aniversario de la Constitución Española con actos institucionales y actividades educativas.",
+        "actividades": [
+            "Acto institucional en el Ayuntamiento",
+            "Talleres educativos en colegios",
+            "Exposición sobre la Constitución"
+        ],
+        "categoria":"Religioso",
+        "fecha":"6 Diciembre 2026",
+        "horario":"10:00 - 14:00",
+        "ubicacion":"Ayuntamiento y colegios locales",
+        "imagen":""
+    },
+    {
+        "id": 3,
+        "title": "Navidad",
+        "description": "Celebración de la Navidad con actividades para toda la familia, incluyendo el tradicional Belén Viviente.",
+        "actividades": [
+            "Belén Viviente en la Plaza Mayor",
+            "Mercadillo navideño",
+            "Conciertos de villancicos",
+            "Talleres de manualidades"
+        ],
+        "categoria":"Festivo",
+        "fecha":"24-25 Diciembre 2026",
+        "horario":"Todo el día",
+        "ubicacion":"Plaza Mayor y calles principales",
+        "imagen":""
+    }
+]

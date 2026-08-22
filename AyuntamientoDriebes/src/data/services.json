@@ -1,0 +1,66 @@
+[
+  {
+    "id": 5,
+    "category": "reserva",
+    "title": "Reserva Servicio Municipal",
+    "description": "Consulta la disponibilidad y solicita la reserva del refugio municipal.",
+    "servicios": [
+      "Consulta de días disponibles",
+      "Solicitud de las fechas deseadas",
+      "Confirmación por parte del Ayuntamiento"
+    ],
+    "contacto": "Ayuntamiento de Driebes",
+    "horario": "Lunes a Viernes: 9:00 - 14:00",
+    "actionLabel": "Consulta los días disponibles"
+  },
+  {
+    "id": 1,
+    "category": "administracion",
+    "title": "Administración Municipal",
+    "description": "Servicios administrativos y trámites municipales.",
+    "servicios": [
+      "Padrón municipal",
+      "Certificados y documentación",
+      "Licencias de obras menores",
+      "Registro de entrada y salida"
+    ],
+    "contacto": "949 29 80 01",
+    "horario": "Lunes a Viernes: 9:00 - 14:00"
+  },
+  {
+    "id": 2,
+    "category": "residuos",
+    "title": "Recogida de Residuos",
+    "description": "Servicio de recogida de basuras y reciclaje.",
+    "servicios": [
+      "Recogida de basura: Martes, Jueves y Sábado",
+      "Contenedores de reciclaje disponibles",
+      "Punto limpio para residuos especiales"
+    ],
+    "contacto": "Ayuntamiento",
+    "horario": "Consultar calendario."
+  },
+  {
+    "id": 3,
+    "category": "medico",
+    "title": "Consultorio Médico",
+    "description": "Atención sanitaria de atención primaria.",
+    "servicios": [
+      "Consulta de medicina general",
+      "Atención de enfermería",
+      "Receta electrónica",
+      "Cita previa"
+    ],
+    "contacto": "Centro de Salud",
+    "horario": "Lunes y Miércoles: 9:00 - 13:00"
+  },
+  {
+    "id": "4",
+    "category": "transporte",
+    "title": "Transporte Público",
+    "description": "Ruta de autobuses",
+    "servicios": ["Autobuses", "Servicio de transporte escolar"],
+    "contacto": "Información en parada",
+    "horario": "Consultar horarios."
+  }
+]

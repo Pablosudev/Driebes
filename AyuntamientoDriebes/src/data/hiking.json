@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "title": "Ruta hasta el Río Tajo",
+    "description": "Una ruta fácil que te llevará desde el centro de Driebes hasta las orillas del río Tajo, pasando por paisajes rurales y zonas de cultivo.",
+    "distancia": "- km",
+    "duracion": "1.5 horas",  
+    "dificultad": "Fácil"
+  },
+  {
+    "id": 2,
+    "title": "Camino de los Olivares",
+    "description": "Una ruta que recorre los olivares que rodean Driebes, ofreciendo vistas panorámicas y la oportunidad de conocer la flora y fauna local.",
+    "distancia": "2 km",
+    "duracion": "1.5 horas",  
+    "dificultad": "Fácil"
+  },{
+    "id": 3,
+    "title": "Ruta Driebes-Caraca",
+    "description": "Una ruta más exigente que conecta Driebes con la histórica cidad romana de Caraca.",
+    "distancia": "5 km",
+    "duracion": "1.5 horas",  
+    "dificultad": "Difícil"
+  }
+]

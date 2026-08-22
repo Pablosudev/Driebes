@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "category": "Patrimonio",
+    "title": "Iglesia de la Asunción de Nuestra Señora",
+    "description": "Servicios administrativos y trámites municipales."
+  },
+  {
+    "id": 2,
+    "category": "Urbano",
+    "title": "Plaza Mayor",
+    "description": "Centro neurálgico del pueblo, lugar de encuentro y celebraciones."
+  },
+  {
+    "id": 3,
+    "category": "Naturaleza",
+    "title": "Rutas de Senderismo",
+    "description": "Múltiples senderos que recorren los alrededores del pueblo y su entorno natural."
+  },
+  {
+    "id": 4,
+    "category": "Naturaleza",
+    "title": "Paisaje Rural",
+    "description": "Campos de cultivo, olivares y paisaje típico de la Alcarria."
+  }
+]

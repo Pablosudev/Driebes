@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "title": "Nuevas Mejoras en el Alumbrado Público",
+    "description": "El Ayuntamiento ha completado la renovación del alumbrado público en varias calles del municipio.",
+    "info": "Se han instalado nuevas luminarias LED en las calles principales del pueblo, mejorando la eficiencia energética y reduciendo el consumo eléctrico en un 60%. Esta iniciativa forma parte del plan de sostenibilidad municipal.",
+    "categoría": "Infraestructura",
+    "fecha": "5 Marzo 2026"
+  },
+  {
+    "id": "2",
+    "title": "Convocatoria de Ayudas para Rehabilitación de Viviendas",
+    "description": "Abierto el plazo de solicitud de subvenciones para mejoras en viviendas del casco urbano.",
+    "info": "Los vecinos pueden solicitar ayudas para la rehabilitación de fachadas, mejora de accesibilidad y eficiencia energética. El plazo estará abierto hasta el 30 de abril. Información disponible en el Ayuntamiento.",
+    "categoría": "Ayudas",
+    "fecha": "5 Marzo 2026"
+  },
+  {
+    "id": "3",
+    "title": "Programa de Actividades Culturales  para Primavera",
+    "description": "",
+    "info": "Talleres de artesanía, charlas sobre historia local, y un ciclo de cine español configuran la programación cultural de los próximos meses. Todas las actividades son gratuitas y abiertas al público.",
+    "categoría": "Cultura",
+    "fecha": "1 Marzo 2026"
+  }
+]

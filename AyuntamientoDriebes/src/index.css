@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+:root {
+  --text: #6b6375;
+  --bg: #fff;
+  --code-bg: #f4f3ec;
+  --accent: #aa3bff;
+ 
+  --social-bg: rgba(244, 243, 236, 0.5);
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --code-bg: #1f2028;
+    --accent: #c084fc;
+    --accent-bg: rgba(192, 132, 252, 0.15);
+    --social-bg: rgba(47, 48, 58, 0.5);
+    --shadow:
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  }
+
+  #social .button-icon {
+    filter: invert(1) brightness(2);
+  }
+}
+
+#root {
+  
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  margin: 0;
+}
+
+
+
+
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}
+
+.reservation-calendar .fc {
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: #fffaf3;
+  --fc-border-color: #e7d5bb;
+  --fc-button-bg-color: #292524;
+  --fc-button-border-color: #292524;
+  --fc-button-hover-bg-color: #b45309;
+  --fc-button-hover-border-color: #b45309;
+  --fc-button-active-bg-color: #92400e;
+  --fc-button-active-border-color: #92400e;
+  --fc-today-bg-color: rgb(245 158 11 / 14%);
+  color: #44403c;
+  font-family: var(--sans);
+  font-size: 0.875rem;
+}
+
+.reservation-calendar .fc .fc-toolbar.fc-header-toolbar {
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.reservation-calendar .fc .fc-toolbar-title {
+  margin: 0;
+  color: #292524;
+  font-family: var(--heading);
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.reservation-calendar .fc .fc-button {
+  border-radius: 9999px;
+  box-shadow: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.55rem 0.8rem;
+  text-transform: uppercase;
+}
+
+.reservation-calendar .fc .fc-button:focus-visible {
+  box-shadow: 0 0 0 3px rgb(217 119 6 / 30%);
+}
+
+.reservation-calendar .fc .fc-col-header-cell-cushion {
+  color: #78716c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.65rem 0.25rem;
+  text-transform: uppercase;
+}
+
+.reservation-calendar .fc .fc-daygrid-day-frame {
+  min-height: 4.5rem;
+}
+
+.reservation-calendar .fc .fc-daygrid-day-number {
+  color: #44403c;
+  font-weight: 600;
+  padding: 0.45rem;
+}
+
+.reservation-calendar .fc .fc-day-other .fc-daygrid-day-number {
+  color: #a8a29e;
+}
+
+.reservation-calendar .fc .fc-day-today .fc-daygrid-day-number {
+  color: #92400e;
+  font-weight: 800;
+}
+
+.reservation-calendar .fc .fc-bg-event {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .reservation-calendar .fc .fc-header-toolbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .reservation-calendar .fc .fc-toolbar-chunk:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    text-align: center;
+  }
+
+  .reservation-calendar .fc .fc-toolbar-chunk:first-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .reservation-calendar .fc .fc-toolbar-chunk:last-child {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .reservation-calendar .fc .fc-toolbar-title {
+    font-size: 1.1rem;
+  }
+
+  .reservation-calendar .fc .fc-button {
+    padding: 0.45rem 0.6rem;
+  }
+
+  .reservation-calendar .fc .fc-daygrid-day-frame {
+    min-height: 3.25rem;
+  }
+
+  .reservation-calendar .fc .fc-daygrid-day-number {
+    font-size: 0.75rem;
+    padding: 0.35rem;
+  }
+
+  .reservation-calendar .fc .fc-col-header-cell-cushion {
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+  }
+}
