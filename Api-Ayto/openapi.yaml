@@ -1,0 +1,500 @@
+openapi: 3.0.3
+info:
+  title: API Ayuntamiento
+  description: API REST para la gestión de noticias, eventos y reservas del local municipal.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local
+
+tags:
+  - name: Noticias
+  - name: Eventos
+  - name: Reservas
+
+paths:
+
+  # ─────────────────────────────────────────
+  # NOTICIAS
+  # ─────────────────────────────────────────
+
+  /noticias:
+    get:
+      tags: [Noticias]
+      summary: Listar todas las noticias
+      responses:
+        '200':
+          description: Lista de noticias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Noticia'
+
+    post:
+      tags: [Noticias]
+      summary: Crear una noticia
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoticiaInput'
+      responses:
+        '201':
+          description: Noticia creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Noticia'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /noticias/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+
+    get:
+      tags: [Noticias]
+      summary: Obtener una noticia por ID
+      responses:
+        '200':
+          description: Noticia encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Noticia'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Noticias]
+      summary: Actualizar una noticia
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NoticiaInput'
+      responses:
+        '200':
+          description: Noticia actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Noticia'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Noticias]
+      summary: Eliminar una noticia
+      responses:
+        '204':
+          description: Noticia eliminada
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────
+  # EVENTOS
+  # ─────────────────────────────────────────
+
+  /eventos:
+    get:
+      tags: [Eventos]
+      summary: Listar todos los eventos
+      parameters:
+        - name: categoria
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/CategoriaEvento'
+          description: Filtrar por categoría
+      responses:
+        '200':
+          description: Lista de eventos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Evento'
+
+    post:
+      tags: [Eventos]
+      summary: Crear un evento
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EventoInput'
+      responses:
+        '201':
+          description: Evento creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /eventos/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+
+    get:
+      tags: [Eventos]
+      summary: Obtener un evento por ID
+      responses:
+        '200':
+          description: Evento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Eventos]
+      summary: Actualizar un evento
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EventoInput'
+      responses:
+        '200':
+          description: Evento actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Eventos]
+      summary: Eliminar un evento
+      responses:
+        '204':
+          description: Evento eliminado
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────
+  # RESERVAS
+  # ─────────────────────────────────────────
+
+  /reservas:
+    get:
+      tags: [Reservas]
+      summary: Listar reservas
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/EstadoReserva'
+          description: Filtrar por estado
+        - name: fecha
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+            example: '2026-07-01'
+          description: Consultar disponibilidad en una fecha concreta (formato YYYY-MM-DD)
+      responses:
+        '200':
+          description: Lista de reservas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reserva'
+
+    post:
+      tags: [Reservas]
+      summary: Crear una solicitud de reserva
+      description: Crea una reserva con estado inicial `pendiente`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservaInput'
+      responses:
+        '201':
+          description: Reserva creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reserva'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: El rango de fechas solicitado está ocupado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /reservas/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+
+    get:
+      tags: [Reservas]
+      summary: Obtener una reserva por ID
+      responses:
+        '200':
+          description: Reserva encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reserva'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Reservas]
+      summary: Eliminar una reserva
+      responses:
+        '204':
+          description: Reserva eliminada
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reservas/{id}/estado:
+    parameters:
+      - $ref: '#/components/parameters/IdPath'
+
+    patch:
+      tags: [Reservas]
+      summary: Cambiar el estado de una reserva
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [estado]
+              properties:
+                estado:
+                  $ref: '#/components/schemas/EstadoReserva'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reserva'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ─────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────
+
+components:
+
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        example: 1
+
+  responses:
+    BadRequest:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+
+    # ── Enums ──────────────────────────────
+
+    CategoriaEvento:
+      type: string
+      enum: [Deportivo, Festivo, Religioso, Otro]
+      example: Deportivo
+
+    EstadoReserva:
+      type: string
+      enum: [libre, pendiente, reservado]
+      example: pendiente
+
+    # ── Noticias ───────────────────────────
+
+    Noticia:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        titulo:
+          type: string
+          example: 'Corte de agua el lunes'
+        descripcion:
+          type: string
+          example: 'El suministro estará cortado de 9h a 14h en la calle Mayor.'
+        imagen:
+          type: string
+          nullable: true
+          example: '/uploads/noticias/corte-agua.jpg'
+        fechaSubida:
+          type: string
+          format: date-time
+          example: '2026-06-25T10:00:00Z'
+
+    NoticiaInput:
+      type: object
+      required: [titulo, descripcion]
+      properties:
+        titulo:
+          type: string
+          example: 'Corte de agua el lunes'
+        descripcion:
+          type: string
+          example: 'El suministro estará cortado de 9h a 14h en la calle Mayor.'
+        imagen:
+          type: string
+          format: binary
+          description: Archivo de imagen (opcional)
+
+    # ── Eventos ────────────────────────────
+
+    Evento:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        titulo:
+          type: string
+          example: 'Feria de verano'
+        descripcion:
+          type: string
+          example: 'Celebración anual de la feria del pueblo.'
+        imagen:
+          type: string
+          nullable: true
+          example: '/uploads/eventos/feria-verano.jpg'
+        fechaCreacion:
+          type: string
+          format: date-time
+          example: '2026-06-25T10:00:00Z'
+        fechaEvento:
+          type: string
+          format: date-time
+          example: '2026-08-15T18:00:00Z'
+        categoria:
+          $ref: '#/components/schemas/CategoriaEvento'
+
+    EventoInput:
+      type: object
+      required: [titulo, descripcion, fechaEvento, categoria]
+      properties:
+        titulo:
+          type: string
+          example: 'Feria de verano'
+        descripcion:
+          type: string
+          example: 'Celebración anual de la feria del pueblo.'
+        fechaEvento:
+          type: string
+          format: date-time
+          example: '2026-08-15T18:00:00Z'
+        categoria:
+          $ref: '#/components/schemas/CategoriaEvento'
+        imagen:
+          type: string
+          format: binary
+          description: Archivo de imagen (opcional)
+
+    # ── Reservas ───────────────────────────
+
+    Reserva:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: 'Juan García'
+        telefono:
+          type: string
+          example: '612345678'
+        fechaInicio:
+          type: string
+          format: date-time
+          example: '2026-07-10T09:00:00Z'
+        fechaFin:
+          type: string
+          format: date-time
+          example: '2026-07-10T13:00:00Z'
+        estado:
+          $ref: '#/components/schemas/EstadoReserva'
+        notas:
+          type: string
+          nullable: true
+          example: 'Necesito mesas y sillas para 30 personas.'
+        fechaCreacion:
+          type: string
+          format: date-time
+          example: '2026-06-25T10:00:00Z'
+
+    ReservaInput:
+      type: object
+      required: [nombre, telefono, fechaInicio, fechaFin]
+      properties:
+        nombre:
+          type: string
+          example: 'Juan García'
+        telefono:
+          type: string
+          example: '612345678'
+        fechaInicio:
+          type: string
+          format: date-time
+          example: '2026-07-10T09:00:00Z'
+        fechaFin:
+          type: string
+          format: date-time
+          example: '2026-07-10T13:00:00Z'
+        notas:
+          type: string
+          example: 'Necesito mesas y sillas para 30 personas.'
+
+    # ── Error ──────────────────────────────
+
+    Error:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: 'Recurso no encontrado'
